@@ -8,16 +8,14 @@ function greet(name),
 @ Call the function with a name.
 greet("World").
 
-@ Loop 5 times and greet "Naga" each time.
-@ Note: loop variable `i` only exists inside the repeat block.
-repeat 5 times as i,
+@ Loop 5 times (like Python: for _ in range(5))
+repeat 5 times,
     greet("Naga").
 ..
 
-print "Loop ran successfully!".
-i = 5.
-while i > 0,
-    print "Hello".
-    i = i - 1.
+@ Loop with counter (like Python: for i in range(5))
+repeat 5 times as i,
+    print "i = " with i.
 ..
-print "Loop ran successfully!".
+
+print "Done!".

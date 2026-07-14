@@ -1,3 +1,4 @@
+import * as cp from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -10,111 +11,113 @@ import {
 } from "vscode-languageclient/node";
 
 let client: LanguageClient | undefined;
+const diagnosticCollection = vscode.languages.createDiagnosticCollection("langp");
+const output = vscode.window.createOutputChannel("Lang.P");
 
-const DEFAULT_LSP = path.join(os.homedir(), ".local", "bin", "lang-lsp");
-
-const COLOR_RULES = [
-  { scope: "comment.line.number-sign.langp", foreground: "#6A9955", fontStyle: "italic" },
-  { scope: "string.quoted.double.langp", foreground: "#CE9178" },
-  { scope: "keyword.control.langp", foreground: "#C586C0" },
-  { scope: "keyword.control.compound.langp", foreground: "#C586C0" },
-  { scope: "storage.type.function.langp", foreground: "#569CD6" },
-  { scope: "storage.type.langp", foreground: "#569CD6" },
-  { scope: "keyword.operator.word.langp", foreground: "#D4D4D4" },
-  { scope: "constant.language.langp", foreground: "#569CD6" },
-  { scope: "constant.numeric.integer.langp", foreground: "#B5CEA8" },
-  { scope: "constant.numeric.float.langp", foreground: "#B5CEA8" },
-  { scope: "support.function.langp", foreground: "#DCDCAA" },
-  { scope: "entity.name.function.langp", foreground: "#DCDCAA" },
-  { scope: "meta.function-call.langp", foreground: "#DCDCAA" },
-  { scope: "entity.name.type.langp", foreground: "#4EC9B0" },
-  { scope: "support.type.langp", foreground: "#4EC9B0" },
-  { scope: "punctuation.section.block.end.langp", foreground: "#FFD700" },
-  { scope: "punctuation.terminator.statement.langp", foreground: "#808080" },
-  { scope: "variable.other.readwrite.langp", foreground: "#9CDCFE" },
-  { scope: "keyword.operator.langp", foreground: "#D4D4D4" },
-];
-
-function resolveLangLsp(configured: string): string {
-  if (configured.includes("/") || configured.includes("\\") || path.isAbsolute(configured)) {
-    return configured;
-  }
+function binPath(name: string): string {
+  const home = os.homedir();
   const candidates = [
-    DEFAULT_LSP,
-    path.join(os.homedir(), ".cargo", "bin", configured),
+    path.join(home, ".local", "bin", name),
+    path.join(home, ".cargo", "bin", name),
   ];
   if (process.env.PATH) {
     for (const dir of process.env.PATH.split(path.delimiter)) {
-      candidates.push(path.join(dir, configured));
+      candidates.push(path.join(dir, name));
     }
   }
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
   }
-  return DEFAULT_LSP;
+  return path.join(home, ".local", "bin", name);
 }
 
-function applyLangpColors(): void {
-  const editorConfig = vscode.workspace.getConfiguration("editor");
-  const existing = editorConfig.get<Record<string, unknown>>("tokenColorCustomizations") ?? {};
-  const rules = (existing.textMateRules as Array<Record<string, unknown>> | undefined) ?? [];
-  const scopes = new Set(rules.map((r) => r.scope as string));
-  const merged = [...rules];
-  for (const rule of COLOR_RULES) {
-    if (!scopes.has(rule.scope)) {
-      merged.push({
-        scope: rule.scope,
-        settings: { foreground: rule.foreground, fontStyle: rule.fontStyle },
+async function forceLangpLanguage(doc: vscode.TextDocument): Promise<void> {
+  if (doc.uri.scheme !== "file") return;
+  if (!doc.fileName.endsWith(".lp")) return;
+  if (doc.languageId === "langp") return;
+  try {
+    await vscode.languages.setTextDocumentLanguage(doc, "langp");
+    output.appendLine(`Set language to langp: ${doc.fileName}`);
+  } catch (e) {
+    output.appendLine(`Failed to set language: ${e}`);
+  }
+}
+
+function parseDiagnostics(text: string, doc: vscode.TextDocument): vscode.Diagnostic[] {
+  const diags: vscode.Diagnostic[] = [];
+  const lines = text.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const errMatch = line.match(/^(error|warning)\[([^\]]+)\]:\s*(.+)$/i);
+    if (errMatch) {
+      const severity =
+        errMatch[1].toLowerCase() === "warning"
+          ? vscode.DiagnosticSeverity.Warning
+          : vscode.DiagnosticSeverity.Error;
+      const message = errMatch[3];
+      const code = errMatch[2];
+      let lineNum = 0;
+      let col = 0;
+      const loc = lines[i + 1]?.match(/-->\s*source:(\d+):(\d+)/);
+      if (loc) {
+        lineNum = Math.max(0, parseInt(loc[1], 10) - 1);
+        col = Math.max(0, parseInt(loc[2], 10) - 1);
+        i += 1;
+      }
+      const docLine = doc.lineAt(Math.min(lineNum, doc.lineCount - 1));
+      const start = Math.min(col, docLine.text.length);
+      const end = Math.min(start + 1, docLine.text.length);
+      diags.push({
+        range: new vscode.Range(lineNum, start, lineNum, Math.max(end, start + 1)),
+        message,
+        severity,
+        source: "langp",
+        code,
       });
     }
+    i += 1;
   }
-  void editorConfig.update(
-    "tokenColorCustomizations",
-    { ...existing, textMateRules: merged },
-    vscode.ConfigurationTarget.Global
-  );
+  return diags;
 }
 
-function applyEditorDefaults(): void {
-  const config = vscode.workspace.getConfiguration();
-  void config.update("files.associations", { "*.lp": "langp" }, vscode.ConfigurationTarget.Global);
-
-  const langpEditor = vscode.workspace.getConfiguration("[langp]");
-  const updates: [string, unknown][] = [
-    ["editor.renderValidationDecorations", "on"],
-    ["editor.showUnused", true],
-    ["editor.glyphMargin", true],
-  ];
-  for (const [key, val] of updates) {
-    if (langpEditor.get(key) === undefined) {
-      void langpEditor.update(key, val, vscode.ConfigurationTarget.Global);
+function runCheck(doc: vscode.TextDocument): void {
+  if (doc.languageId !== "langp" && !doc.fileName.endsWith(".lp")) return;
+  const lang = binPath("lang");
+  if (!fs.existsSync(lang)) {
+    output.appendLine(`lang not found at ${lang}`);
+    return;
+  }
+  const tmp = path.join(os.tmpdir(), `langp-check-${Date.now()}.lp`);
+  try {
+    fs.writeFileSync(tmp, doc.getText());
+    const result = cp.spawnSync(lang, ["check", tmp], { encoding: "utf8" });
+    const combined = `${result.stdout}\n${result.stderr}`;
+    if (result.status === 0 && !combined.includes("error[")) {
+      diagnosticCollection.set(doc.uri, []);
+      return;
+    }
+    const diags = parseDiagnostics(combined, doc);
+    diagnosticCollection.set(doc.uri, diags);
+  } catch (e) {
+    output.appendLine(`check failed: ${e}`);
+  } finally {
+    try {
+      fs.unlinkSync(tmp);
+    } catch {
+      /* ignore */
     }
   }
 }
 
-async function ensureLangpLanguage(doc: vscode.TextDocument): Promise<void> {
-  if (doc.fileName.endsWith(".lp") && doc.languageId !== "langp") {
-    await vscode.languages.setTextDocumentLanguage(doc, "langp");
-  }
-}
-
-async function activateAllLpFiles(): Promise<void> {
-  for (const doc of vscode.workspace.textDocuments) {
-    await ensureLangpLanguage(doc);
-  }
-}
-
-function startLanguageServer(context: vscode.ExtensionContext): void {
+function startLanguageServer(): void {
   const langpConfig = vscode.workspace.getConfiguration("langp");
   if (!langpConfig.get<boolean>("enableLanguageServer", true)) return;
 
-  const raw = langpConfig.get<string>("languageServerPath", "").trim();
-  const serverPath = resolveLangLsp(raw || "lang-lsp");
-
+  const configured = langpConfig.get<string>("languageServerPath", "").trim();
+  const serverPath = configured || binPath("lang-lsp");
   if (!fs.existsSync(serverPath)) {
-    void vscode.window.showWarningMessage(
-      `Lang.P: lang-lsp not found at ${serverPath}. Run the install script.`
-    );
+    output.appendLine(`lang-lsp not found at ${serverPath} — using built-in checker`);
     return;
   }
 
@@ -124,37 +127,57 @@ function startLanguageServer(context: vscode.ExtensionContext): void {
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { scheme: "file", language: "langp" },
-      { scheme: "file", pattern: "**/*.lp" },
-    ],
+    documentSelector: [{ scheme: "file", pattern: "**/*.lp" }],
     synchronize: { fileEvents: vscode.workspace.createFileSystemWatcher("**/*.lp") },
-    outputChannelName: "Lang.P Language Server",
+    outputChannel: output,
   };
 
-  client = new LanguageClient("langp", "Lang.P Language Server", serverOptions, clientOptions);
-
+  client = new LanguageClient("langp-lsp", "Lang.P LSP", serverOptions, clientOptions);
   void client.start();
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  applyLangpColors();
-  applyEditorDefaults();
-  await activateAllLpFiles();
+  output.appendLine("Lang.P extension activated");
+
+  for (const doc of vscode.workspace.textDocuments) {
+    await forceLangpLanguage(doc);
+    runCheck(doc);
+  }
 
   context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument((doc) => void ensureLangpLanguage(doc)),
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      if (editor) void ensureLangpLanguage(editor.document);
+    diagnosticCollection,
+    output,
+    vscode.workspace.onDidOpenTextDocument(async (doc) => {
+      await forceLangpLanguage(doc);
+      runCheck(doc);
+    }),
+    vscode.workspace.onDidSaveTextDocument((doc) => runCheck(doc)),
+    vscode.workspace.onDidChangeTextDocument((e) => {
+      if (e.document.fileName.endsWith(".lp")) {
+        runCheck(e.document);
+      }
+    }),
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+      if (editor) {
+        await forceLangpLanguage(editor.document);
+        runCheck(editor.document);
+      }
+    }),
+    vscode.commands.registerCommand("langp.runFile", () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor?.document.fileName.endsWith(".lp")) return;
+      const lang = binPath("lang");
+      const term = vscode.window.createTerminal("Lang.P");
+      term.show();
+      term.sendText(`${lang} run "${editor.document.fileName}"`);
     })
   );
 
-  startLanguageServer(context);
+  startLanguageServer();
+  void vscode.window.showInformationMessage("Lang.P language support active");
 }
 
 export async function deactivate(): Promise<void> {
-  if (client) {
-    await client.stop();
-    client = undefined;
-  }
+  diagnosticCollection.dispose();
+  if (client) await client.stop();
 }

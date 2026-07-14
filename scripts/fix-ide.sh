@@ -1,70 +1,64 @@
 #!/usr/bin/env sh
-# Fix Lang.P IDE — colors, error squiggles, extension (one command)
-# Usage: ./scripts/fix-ide.sh
+# Fix Lang.P IDE — colors, error squiggles, auto-indent (run from project root)
 set -e
 
-REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
-VERSION="${LANGP_EXT_VERSION:-0.1.3}"
-INSTALL_DIR="${LANGP_INSTALL_DIR:-$HOME/.local/bin}"
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 CURSOR="/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
+EXT_SRC="$ROOT/editors/vscode-langp"
+VERSION="0.2.0"
+VSIX="/tmp/langp-${VERSION}.vsix"
+LSP="$HOME/.local/bin/lang-lsp"
+LANG="$HOME/.local/bin/lang"
 
-echo "Lang.P IDE fix"
+echo "=== Lang.P IDE Fix v${VERSION} ==="
 echo ""
 
-# 1. Ensure lang-lsp is installed
-if [ ! -x "$INSTALL_DIR/lang-lsp" ]; then
-  echo "Installing lang-lsp..."
-  sh "$(dirname "$0")/install.sh"
-else
-  echo "✓ lang-lsp found at $INSTALL_DIR/lang-lsp"
+# Build extension
+if command -v npm >/dev/null 2>&1 && [ ! -f "$EXT_SRC/langp-${VERSION}.vsix" ]; then
+  echo "Building extension..."
+  (cd "$EXT_SRC" && npm run compile && npm run package) || true
 fi
 
-# 2. Download VSIX (Cursor cannot install from URL directly)
-VSIX="/tmp/langp-langp-${VERSION}.vsix"
-TAG="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-  | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
-[ -n "$TAG" ] || TAG="v0.1.2"
-
-echo "Downloading extension ${VERSION}..."
-if [ -f "$(dirname "$0")/../editors/vscode-langp/langp-langp-${VERSION}.vsix" ]; then
-  cp "$(dirname "$0")/../editors/vscode-langp/langp-langp-${VERSION}.vsix" "$VSIX"
-else
-  curl -fsSL "https://github.com/${REPO}/releases/download/${TAG}/langp-langp-${VERSION}.vsix" -o "$VSIX" \
-    || curl -fsSL "https://github.com/${REPO}/releases/download/v0.1.2/langp-langp-0.1.2.vsix" -o "$VSIX"
+VSIX="$EXT_SRC/langp-${VERSION}.vsix"
+if [ ! -f "$VSIX" ]; then
+  VSIX=$(ls "$EXT_SRC"/*.vsix 2>/dev/null | tail -1)
 fi
+cp "$VSIX" "/tmp/langp-${VERSION}.vsix" 2>/dev/null || true
+VSIX="/tmp/langp-${VERSION}.vsix"
 
-# 3. Install extension via local VSIX path (NOT URL)
-if [ -x "$CURSOR" ]; then
+# Install to Cursor global extensions
+if [ -x "$CURSOR" ] && [ -f "$VSIX" ]; then
+  echo "Installing extension..."
   "$CURSOR" --install-extension "$VSIX" --force
-  echo "✓ Extension installed via Cursor"
-else
-  sh "$(dirname "$0")/install-extension.sh"
 fi
 
-# 4. Write workspace settings with absolute lang-lsp path
-LSP="$INSTALL_DIR/lang-lsp"
-SETTINGS="$(dirname "$0")/../.vscode/settings.json"
-mkdir -p "$(dirname "$SETTINGS")"
-cat > "$SETTINGS" <<EOF
-{
-  "files.associations": { "*.lp": "langp" },
-  "[langp]": {
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true,
-    "editor.autoIndent": "full",
-    "editor.renderValidationDecorations": "on",
-    "editor.quickSuggestions": { "other": "on", "comments": "off", "strings": "on" }
-  },
-  "langp.languageServerPath": "$LSP",
-  "langp.enableLanguageServer": true
-}
-EOF
-echo "✓ Workspace settings updated"
+# Also copy unpacked into workspace (loads with this project)
+WS_EXT="$ROOT/.vscode/extensions/Nagashreeshyl.langp-${VERSION}"
+echo "Installing workspace extension to $WS_EXT ..."
+rm -rf "$WS_EXT"
+mkdir -p "$WS_EXT"
+# Copy built extension files (exclude dev junk)
+for item in package.json language-configuration.json icons snippets syntaxes out node_modules; do
+  if [ -e "$EXT_SRC/$item" ]; then
+    cp -R "$EXT_SRC/$item" "$WS_EXT/"
+  fi
+done
+
+# Ensure lang tools exist
+if [ ! -x "$LANG" ] || [ ! -x "$LSP" ]; then
+  echo "Installing lang toolchain..."
+  sh "$ROOT/scripts/install.sh"
+fi
 
 echo ""
-echo "Done! Now:"
-echo "  1. Press Cmd+Q to fully quit Cursor"
-echo "  2. Reopen this project"
-echo "  3. Open any .lp file — you should see colors + red/yellow error lines"
+echo "=== DONE ==="
 echo ""
-echo "Test error squiggles: remove a '.' from a line and save."
+echo "IMPORTANT — do these 3 steps:"
+echo "  1. Cmd+Q  (fully QUIT Cursor — not just close window)"
+echo "  2. Reopen Cursor"
+echo "  3. Open examples/hello.lp in the EDITOR tab (not the chat panel)"
+echo ""
+echo "Bottom-right of editor must say: Lang.P"
+echo "If it says Plain Text, click it → choose Lang.P"
+echo ""
+echo "Test errors: delete a '.' from a line — red squiggle should appear."
