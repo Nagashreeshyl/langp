@@ -1,0 +1,110 @@
+use langp_ast::{FunctionDecl, Param};
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::fmt;
+use std::rc::Rc;
+
+#[derive(Clone)]
+pub enum Value {
+    Int(i64),
+    Float(f64),
+    Bool(bool),
+    String(String),
+    Char(char),
+    Null,
+    List(Rc<RefCell<Vec<Value>>>),
+    Dict(Rc<RefCell<HashMap<String, Value>>>),
+    Function(Rc<UserFunction>),
+    NativeFunction(NativeFn),
+}
+
+impl fmt::Debug for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UserFunction {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub decl: Rc<FunctionDecl>,
+}
+
+pub type NativeFn = Rc<dyn Fn(&[Value]) -> crate::RuntimeResult<Value>>;
+
+impl Value {
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Value::Bool(b) => *b,
+            Value::Null => false,
+            Value::Int(n) => *n != 0,
+            Value::Float(n) => *n != 0.0,
+            Value::String(s) => !s.is_empty(),
+            Value::List(l) => !l.borrow().is_empty(),
+            Value::Dict(d) => !d.borrow().is_empty(),
+            _ => true,
+        }
+    }
+
+    pub fn type_name(&self) -> &'static str {
+        match self {
+            Value::Int(_) => "Int",
+            Value::Float(_) => "Float",
+            Value::Bool(_) => "Bool",
+            Value::String(_) => "String",
+            Value::Char(_) => "Char",
+            Value::Null => "Null",
+            Value::List(_) => "List",
+            Value::Dict(_) => "Dict",
+            Value::Function(_) => "Function",
+            Value::NativeFunction(_) => "Function",
+        }
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Value::Int(n) => write!(f, "{n}"),
+            Value::Float(n) => write!(f, "{n}"),
+            Value::Bool(b) => write!(f, "{b}"),
+            Value::String(s) => write!(f, "{s}"),
+            Value::Char(c) => write!(f, "{c}"),
+            Value::Null => write!(f, "null"),
+            Value::List(items) => {
+                let parts: Vec<String> = items.borrow().iter().map(|v| v.to_string()).collect();
+                write!(f, "[{}]", parts.join(", "))
+            }
+            Value::Dict(map) => {
+                let parts: Vec<String> = map
+                    .borrow()
+                    .iter()
+                    .map(|(k, v)| format!("{k}: {v}"))
+                    .collect();
+                write!(f, "{{{}}}", parts.join(", "))
+            }
+            Value::Function(func) => write!(f, "<function {}>", func.name),
+            Value::NativeFunction(_) => write!(f, "<native function>"),
+        }
+    }
+}
+
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Int(a), Value::Int(b)) => a == b,
+            (Value::Float(a), Value::Float(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::String(a), Value::String(b)) => a == b,
+            (Value::Char(a), Value::Char(b)) => a == b,
+            (Value::Null, Value::Null) => true,
+            (Value::List(a), Value::List(b)) => *a.borrow() == *b.borrow(),
+            (Value::Dict(a), Value::Dict(b)) => *a.borrow() == *b.borrow(),
+            (Value::Int(a), Value::Float(b)) | (Value::Float(b), Value::Int(a)) => {
+                *a as f64 == *b
+            }
+            _ => false,
+        }
+    }
+}

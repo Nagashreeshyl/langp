@@ -1,0 +1,47 @@
+[workspace]
+resolver = "2"
+members = [
+    "lexer",
+    "ast",
+    "parser",
+    "semantic",
+    "runtime",
+    "interpreter",
+    "langc",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Lang.P Contributors"]
+repository = "https://github.com/Nagashreeshyl/langp"
+
+[workspace.dependencies]
+langp-lexer = { path = "lexer" }
+langp-ast = { path = "ast" }
+langp-parser = { path = "parser" }
+langp-semantic = { path = "semantic" }
+langp-runtime = { path = "runtime" }
+langp-interpreter = { path = "interpreter" }
+
+# Faster debug builds (user-facing `cargo build` during development)
+[profile.dev]
+incremental = true
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+# Release: fast native binary for distribution
+[profile.release]
+lto = "thin"
+codegen-units = 16
+opt-level = 3
+strip = true
+
+# CI / install builds — balanced speed vs optimization
+[profile.release-fast]
+inherits = "release"
+lto = false
+codegen-units = 256

@@ -1,0 +1,18 @@
+[package]
+name = "langc"
+description = "Lang.P compiler CLI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "langc"
+path = "src/main.rs"
+
+[dependencies]
+langp-lexer = { workspace = true }
+langp-ast = { workspace = true }
+langp-parser = { workspace = true }
+langp-semantic = { workspace = true }
+langp-interpreter = { workspace = true }

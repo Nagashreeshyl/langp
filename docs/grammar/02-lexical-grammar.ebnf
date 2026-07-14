@@ -1,0 +1,155 @@
+(* ==========================================================================
+   Lang.P Lexical Grammar (EBNF)
+   Version: 0.1.0
+   ========================================================================== *)
+
+(* --------------------------------------------------------------------------
+   Source file
+   -------------------------------------------------------------------------- *)
+
+source_file = { character } ;
+
+character   = ? any UTF-8 character except NUL ? ;
+
+(* --------------------------------------------------------------------------
+   Whitespace and comments (skipped by lexer, except NEWLINE)
+   -------------------------------------------------------------------------- *)
+
+whitespace  = ' ' | '\t' ;
+
+comment     = '@', { ? any character except newline ? }, newline ;
+
+newline     = '\n' | ( '\r', '\n' ) ;
+
+(* --------------------------------------------------------------------------
+   Identifiers
+   -------------------------------------------------------------------------- *)
+
+letter      = 'A'..'Z' | 'a'..'z' ;
+digit       = '0'..'9' ;
+hex_digit   = digit | 'A'..'F' | 'a'..'f' ;
+
+identifier  = ( letter | '_' ), { letter | digit | '_' } ;
+
+(* --------------------------------------------------------------------------
+   Keywords (reserved — cannot be identifiers)
+   -------------------------------------------------------------------------- *)
+
+keyword     = 'and' | 'as' | 'async' | 'await' | 'break' | 'catch'
+            | 'continue' | 'else' | 'enum' | 'false' | 'finally'
+            | 'for' | 'forever' | 'function' | 'if' | 'in' | 'input'
+            | 'interface' | 'let' | 'match' | 'not' | 'null' | 'on'
+            | 'or' | 'otherwise' | 'repeat' | 'return' | 'self' | 'static'
+            | 'super' | 'this' | 'true' | 'try' | 'type' | 'use' | 'wait'
+            | 'while' | 'with'
+            ;
+
+(* Compound keywords — lexer MUST emit as single tokens *)
+compound_keyword = 'otherwise if'    (* → KW_OTHERWISE_IF *)
+                 | 'repeat forever' (* → KW_REPEAT_FOREVER *)
+                 | 'wait for'       (* → KW_WAIT_FOR *)
+                 ;
+
+(* Contextual keywords after `input` — reserved only in that position *)
+input_type_keyword = 'text' | 'number' | 'decimal' | 'boolean'
+                   | 'password' | 'file' | 'folder' | 'date' | 'color'
+                   ;
+
+(* --------------------------------------------------------------------------
+   Literals
+   -------------------------------------------------------------------------- *)
+
+integer_literal = decimal_integer
+                | hex_integer
+                | binary_integer
+                | octal_integer
+                ;
+
+decimal_integer = digit, { digit } ;
+hex_integer     = '0', ( 'x' | 'X' ), hex_digit, { hex_digit } ;
+binary_integer  = '0', ( 'b' | 'B' ), { '0' | '1' } ;
+octal_integer   = '0', ( 'o' | 'O' ), { '0'..'7' } ;
+
+float_literal   = digit, { digit }, '.', digit, { digit }, [ exponent ]
+                | digit, { digit }, exponent
+                ;
+
+exponent        = ( 'e' | 'E' ), [ '+' | '-' ], digit, { digit } ;
+
+boolean_literal = 'true' | 'false' ;
+
+null_literal    = 'null' ;
+
+string_literal  = double_quoted_string | single_quoted_string ;
+
+double_quoted_string = '"', { string_char | escape_sequence }, '"' ;
+single_quoted_string = "'", { string_char_single | escape_sequence }, "'" ;
+
+raw_string      = '"""', { ? any character ? }, '"""' ;
+
+string_char        = ? any character except '"', '\', newline ? ;
+string_char_single = ? any character except "'", '\', newline ? ;
+
+escape_sequence = '\', ( 'n' | 't' | 'r' | '\\' | '"' | "'" | unicode_escape ) ;
+unicode_escape  = 'u', '{', hex_digit, { hex_digit }, '}' ;
+
+character_literal = "'", ( escape_sequence | ? any char except ' and \ ? ), "'" ;
+
+(* --------------------------------------------------------------------------
+   Operators and delimiters
+   -------------------------------------------------------------------------- *)
+
+(* Multi-character operators — maximal munch *)
+operator    = '==' | '!=' | '<=' | '>=' | '<<' | '>>' | '**' | '//'
+            | '&&' | '||' | '..' | '..<' | '...' | '->' | '=>'
+            | '??' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|='
+            | '+' | '-' | '*' | '/' | '%' | '&' | '|' | '^' | '~'
+            | '<' | '>' | '!' | '?'
+            ;
+
+delimiter   = '(' | ')' | '[' | ']' | '{' | '}' | ':' | ','
+            | '=' | '@'
+            ;
+
+(* Special: '.' disambiguated into DOT (member) or STMT_END (terminator) *)
+(* Special: '..' at block level → BLOCK_CLOSE token                     *)
+(* Special: ',' after block header → COMMA (block open)                 *)
+
+(* --------------------------------------------------------------------------
+   Token summary (complete token set emitted by lexer)
+   -------------------------------------------------------------------------- *)
+
+token       = keyword
+            | compound_keyword
+            | identifier
+            | integer_literal
+            | float_literal
+            | boolean_literal
+            | null_literal
+            | string_literal
+            | raw_string
+            | character_literal
+            | operator
+            | delimiter
+            | 'DOT'           (* member access . *)
+            | 'STMT_END'      (* statement terminator . *)
+            | 'BLOCK_CLOSE'   (* block closer .. *)
+            | 'NEWLINE'
+            | 'INDENT'
+            | 'DEDENT'
+            | 'EOF'
+            ;
+
+(* --------------------------------------------------------------------------
+   Indentation algorithm (informative)
+   -------------------------------------------------------------------------- *)
+
+(*
+   After a COMMA that opens a block (trailing comma on header line):
+     1. Emit COMMA, NEWLINE
+     2. If next line is indented deeper than header → emit INDENT
+     3. Each body line at block indent level
+     4. When indent returns to header level and line starts with '..' →
+        emit DEDENT (if needed), BLOCK_CLOSE
+     5. Mixing tab/space or inconsistent indent → lexical error E0101
+*)

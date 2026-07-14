@@ -1,0 +1,419 @@
+(* ==========================================================================
+   Lang.P Syntactic Grammar (EBNF)
+   Version: 0.1.0
+   Start symbol: program
+   ========================================================================== *)
+
+(* --------------------------------------------------------------------------
+   Program and module
+   -------------------------------------------------------------------------- *)
+
+program             = module, EOF ;
+
+module              = { module_item } ;
+
+module_item         = use_decl
+                    | function_decl
+                    | type_decl
+                    | enum_decl
+                    | interface_decl
+                    | extension_decl
+                    | event_handler
+                    | statement
+                    ;
+
+(* --------------------------------------------------------------------------
+   Imports
+   -------------------------------------------------------------------------- *)
+
+use_decl            = 'use', dotted_name, STMT_END ;
+
+dotted_name         = identifier, { DOT, identifier } ;
+
+(* --------------------------------------------------------------------------
+   Declarations
+   -------------------------------------------------------------------------- *)
+
+function_decl       = [ 'async' ], [ 'inline' ], 'function', identifier,
+                      [ generic_params ], function_sig, block STMT_END ;
+
+function_sig        = '(', [ param_list ], ')',
+                      [ '->', type_expr ] ;
+
+param_list          = param, { ',', param }, [ ',', '...', identifier ] ;
+
+param               = identifier, [ ':', type_expr ], [ '=', expr ] ;
+
+generic_params      = '<', generic_param, { ',', generic_param }, '>' ;
+
+generic_param       = identifier, [ ':', type_constraint ] ;
+
+type_constraint     = type_expr, { '&', type_expr } ;
+
+(* --- Type definition --- *)
+
+type_decl           = [ visibility ], 'type', identifier,
+                      [ generic_params ], [ type_inheritance ],
+                      type_body, STMT_END ;
+
+type_inheritance    = 'extends', type_expr
+                    | 'implements', type_expr, { ',', type_expr }
+                    ;
+
+type_body           = COMMA, NEWLINE, INDENT, { type_member }, DEDENT, BLOCK_CLOSE ;
+
+type_member         = field_decl
+                    | function_decl
+                    | property_decl
+                    | event_decl
+                    ;
+
+field_decl          = [ visibility ], identifier, [ ':', type_expr ],
+                      [ '=', expr ], STMT_END ;
+
+property_decl       = [ visibility ], 'property', identifier, '->', type_expr,
+                      ( block | ( '=', identifier, block ) ), STMT_END ;
+
+event_decl          = [ visibility ], 'event', identifier,
+                      [ '(', [ param_list ], ')' ], STMT_END ;
+
+visibility          = 'public' | 'private' | 'internal' ;
+
+(* --- Enum --- *)
+
+enum_decl           = [ visibility ], 'enum', identifier, enum_body, STMT_END ;
+
+enum_body           = COMMA, NEWLINE, INDENT, { enum_variant }, DEDENT, BLOCK_CLOSE ;
+
+enum_variant        = identifier, [ '(', [ arg_list ], ')' ], STMT_END ;
+
+arg_list            = arg, { ',', arg } ;
+arg                 = identifier, [ ':', type_expr ], [ '=', expr ] ;
+
+(* --- Interface --- *)
+
+interface_decl      = [ visibility ], 'interface', identifier,
+                      [ generic_params ], interface_body, STMT_END ;
+
+interface_body      = COMMA, NEWLINE, INDENT, { interface_member }, DEDENT, BLOCK_CLOSE ;
+
+interface_member    = function_decl
+                    | property_decl
+                    ;
+
+(* --- Extension --- *)
+
+extension_decl      = 'extension', type_expr, extension_body, STMT_END ;
+
+extension_body      = COMMA, NEWLINE, INDENT, { function_decl }, DEDENT, BLOCK_CLOSE ;
+
+(* --------------------------------------------------------------------------
+   Statements
+   -------------------------------------------------------------------------- *)
+
+statement           = simple_stmt | compound_stmt ;
+
+simple_stmt         = assign_stmt
+                    | print_stmt
+                    | return_stmt
+                    | break_stmt
+                    | continue_stmt
+                    | throw_stmt
+                    | assert_stmt
+                    | pass_stmt
+                    | write_stmt
+                    | io_stmt
+                    | expr_stmt
+                    ;
+
+compound_stmt       = if_stmt
+                    | repeat_stmt
+                    | for_stmt
+                    | while_stmt
+                    | try_stmt
+                    | match_stmt
+                    | block_stmt
+                    ;
+
+(* --- Assignment --- *)
+
+assign_stmt         = assign_target, assign_op, expr, STMT_END ;
+
+assign_target       = identifier
+                    | member_access
+                    | index_access
+                    | tuple_unpack
+                    ;
+
+tuple_unpack        = identifier, { ',', identifier } ;
+
+assign_op           = '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
+
+(* --- Print --- *)
+
+print_stmt          = 'print', [ 'inline' ], print_args, STMT_END ;
+
+print_args          = expr, { ( ',' | 'with' ), expr } ;
+
+(* --- Return, break, continue, throw, assert, pass --- *)
+
+return_stmt         = 'return', [ expr_list ], STMT_END ;
+
+break_stmt          = 'break', STMT_END ;
+continue_stmt       = 'continue', STMT_END ;
+throw_stmt          = 'throw', expr, STMT_END ;
+assert_stmt         = 'assert', expr, [ ',', expr ], STMT_END ;
+pass_stmt           = 'pass', STMT_END ;
+
+expr_list           = expr, { ',', expr } ;
+
+(* --- I/O statements (natural language forms) --- *)
+
+write_stmt          = 'write', expr, 'to', expr, STMT_END
+                    | 'write_bytes', expr, 'to', expr, STMT_END
+                    | 'append', expr, 'to', expr, STMT_END
+                    ;
+
+io_stmt             = 'copy', expr, 'to', expr, STMT_END
+                    | 'move', expr, 'to', expr, STMT_END
+                    | 'rename', expr, 'to', expr, STMT_END
+                    | 'delete', expr, STMT_END
+                    ;
+
+expr_stmt           = expr, STMT_END ;
+
+(* --------------------------------------------------------------------------
+   Control flow
+   -------------------------------------------------------------------------- *)
+
+if_stmt             = 'if', expr, COMMA, block,
+                      { elif_clause }, [ else_clause ], BLOCK_CLOSE ;
+
+elif_clause         = NEWLINE, 'otherwise if', expr, COMMA, block ;
+
+else_clause         = NEWLINE, 'otherwise', COMMA, block ;
+
+repeat_stmt         = 'repeat', expr, 'times', [ 'as', identifier ], COMMA, block, BLOCK_CLOSE
+                    | 'repeat forever', COMMA, block, BLOCK_CLOSE
+                    ;
+
+for_stmt            = 'for', for_binding, 'in', expr, COMMA, block, BLOCK_CLOSE ;
+
+for_binding         = identifier
+                    | identifier, ',', identifier
+                    ;
+
+while_stmt          = 'while', expr, COMMA, block, BLOCK_CLOSE ;
+
+(* --- Match (v0.1 basic) --- *)
+
+match_stmt          = 'match', expr, COMMA, block, BLOCK_CLOSE ;
+
+match_arm           = pattern, '=>', ( statement | block ), STMT_END ;
+
+pattern             = type_expr [ '(', [ pattern_args ], ')' ]
+                    | literal
+                    | identifier
+                    ;
+
+pattern_args        = identifier, { ',', identifier } ;
+
+(* --------------------------------------------------------------------------
+   Error handling
+   -------------------------------------------------------------------------- *)
+
+try_stmt            = 'try', COMMA, block,
+                      { catch_clause }, [ finally_clause ], BLOCK_CLOSE ;
+
+catch_clause        = NEWLINE, 'catch', identifier, [ ':', type_expr ], COMMA, block ;
+
+finally_clause      = NEWLINE, 'finally', COMMA, block ;
+
+(* --------------------------------------------------------------------------
+   Events
+   -------------------------------------------------------------------------- *)
+
+event_handler       = 'on', expr, [ where_clause ], COMMA, block, BLOCK_CLOSE ;
+
+where_clause        = 'where', expr ;
+
+(* --------------------------------------------------------------------------
+   Blocks
+   -------------------------------------------------------------------------- *)
+
+block               = NEWLINE, INDENT, { statement }, DEDENT ;
+
+block_stmt          = COMMA, block, BLOCK_CLOSE ;
+
+(* --------------------------------------------------------------------------
+   Expressions (precedence by rule layering)
+   -------------------------------------------------------------------------- *)
+
+expr                = assign_expr ;
+
+assign_expr         = with_expr ;   (* assignment handled at statement level *)
+
+with_expr           = or_expr, { 'with', or_expr } ;
+
+or_expr             = and_expr, { ( 'or' | '||' ), and_expr } ;
+
+and_expr            = not_expr, { ( 'and' | '&&' ), not_expr } ;
+
+not_expr            = [ 'not' | '!' ], comparison_expr ;
+
+comparison_expr     = bitwise_or_expr, { comparison_op, bitwise_or_expr }
+                    | bitwise_or_expr, 'is', [ 'not' ], type_expr
+                    ;
+
+comparison_op       = '==' | '!=' | '<' | '>' | '<=' | '>=' ;
+
+bitwise_or_expr     = bitwise_xor_expr, { '|', bitwise_xor_expr } ;
+bitwise_xor_expr    = bitwise_and_expr, { '^', bitwise_and_expr } ;
+bitwise_and_expr    = shift_expr, { '&', shift_expr } ;
+
+shift_expr          = additive_expr, { ( '<<' | '>>' ), additive_expr } ;
+
+additive_expr       = multiplicative_expr, { ( '+' | '-' ), multiplicative_expr } ;
+
+multiplicative_expr = power_expr, { ( '*' | '/' | '%' | '//' ), power_expr } ;
+
+power_expr          = unary_expr, [ '**', power_expr ] ;
+
+unary_expr          = ( '+' | '-' | '~' ), unary_expr
+                    | postfix_expr
+                    ;
+
+postfix_expr        = primary_expr, { postfix_op } ;
+
+postfix_op          = call_args
+                    | index_args
+                    | member_access_suffix
+                    | null_coalesce_suffix
+                    ;
+
+call_args           = '(', [ arg_list ], ')' ;
+index_args          = '[', [ slice_expr ], ']' ;
+member_access_suffix = DOT, identifier ;
+null_coalesce_suffix = '??', unary_expr ;
+
+primary_expr        = literal
+                    | identifier
+                    | 'self' | 'super' | 'this'
+                    | input_expr
+                    | read_expr
+                    | http_expr
+                    | collection_expr
+                    | lambda_expr
+                    | if_expr
+                    | grouped_expr
+                    | object_creation
+                    | named_object_body
+                    ;
+
+(* --- Literals --- *)
+
+literal             = integer_literal
+                    | float_literal
+                    | boolean_literal
+                    | null_literal
+                    | string_literal
+                    | raw_string
+                    | character_literal
+                    ;
+
+(* --- Input expression --- *)
+
+input_expr          = 'input', [ input_type_keyword ], string_literal ;
+
+(* --- Read expression --- *)
+
+read_expr           = 'read', string_literal
+                    | 'read_bytes', string_literal
+                    | 'read_lines', string_literal
+                    ;
+
+(* --- HTTP expressions --- *)
+
+http_expr           = 'get', expr
+                    | 'post', expr, 'with', expr
+                    | 'put', expr, [ 'with', expr ]
+                    | 'delete', expr
+                    | 'patch', expr, [ 'with', expr ]
+                    | 'wait for', expr
+                    ;
+
+(* --- Collections --- *)
+
+collection_expr     = list_expr | dict_expr | set_expr | tuple_expr ;
+
+list_expr           = '[', [ list_content ], ']' ;
+list_content        = [ '...', expr, { ',', [ '...', ] expr } ] ;
+
+dict_expr           = '{', [ dict_content ], '}' ;
+dict_content        = dict_entry, { ',', dict_entry }
+                    | '**', expr, { ',', [ '**', ] expr }
+                    ;
+dict_entry          = ( string_literal | identifier ), ':', expr ;
+
+set_expr            = '{', expr, { ',', expr }, '}' ;  (* disambiguated from dict by parser *)
+
+tuple_expr          = '(', tuple_content, ')' ;
+tuple_content       = expr, { ',', expr }
+                    | named_tuple_entry, { ',', named_tuple_entry }
+                    ;
+named_tuple_entry   = identifier, ':', expr ;
+
+(* --- Lambda --- *)
+
+lambda_expr         = '(', [ param_list ], ')', '=>', ( expr | lambda_block ) ;
+lambda_block        = COMMA, block, BLOCK_CLOSE ;
+
+(* --- Conditional expression --- *)
+
+if_expr             = 'if', expr, 'then', expr, 'else', expr
+                    | 'if', expr, ',', expr, ',', 'otherwise', ',', expr
+                    ;
+
+grouped_expr        = '(', expr, ')' ;
+
+(* --- Object creation --- *)
+
+object_creation     = type_expr, '(', [ arg_list ], ')' ;
+
+named_object_body   = type_expr, '(', ')', COMMA, block, BLOCK_CLOSE ;
+
+(* --- Slice --- *)
+
+slice_expr          = [ expr ], ( '..' | '..<' ), [ expr ] ;
+
+(* --------------------------------------------------------------------------
+   Type expressions
+   -------------------------------------------------------------------------- *)
+
+type_expr           = nullable_type ;
+
+nullable_type       = base_type, [ '?' ] ;
+
+base_type           = identifier, [ generic_args ]
+                    | '(', type_tuple, ')'
+                    | 'function', '(', [ type_list ], ')', '->', type_expr
+                    ;
+
+generic_args        = '<', type_expr, { ',', type_expr }, '>' ;
+type_list           = type_expr, { ',', type_expr } ;
+type_tuple          = type_expr, { ',', type_expr } ;
+
+(* --------------------------------------------------------------------------
+   Function and method calls
+   -------------------------------------------------------------------------- *)
+
+arg_list            = arg, { ',', arg } ;
+arg                 = [ identifier, '=' ], expr ;
+
+member_access       = postfix_expr ;  (* reuses postfix chain *)
+
+index_access        = postfix_expr ;
+
+(* --------------------------------------------------------------------------
+   END OF GRAMMAR
+   -------------------------------------------------------------------------- *)

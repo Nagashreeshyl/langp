@@ -1,0 +1,54 @@
+# Build artifacts
+/target/
+/dist/
+/build/
+/out/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Lang.P compiled output
+*.lpc
+*.lpo
+
+# Package manager
+/.lang/
+/lang.lock
+
+# IDE / editor
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Test & coverage
+/coverage/
+*.profraw
+*.profdata
+
+# Logs
+*.log
+
+# Node (Lang Studio)
+node_modules/
+
+# Rust — keep Cargo.lock for reproducible langc builds
+
+# Python (tooling scripts)
+__pycache__/
+*.pyc
+.venv/
+
+# Temporary
+/tmp/
+*.tmp
