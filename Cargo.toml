@@ -7,7 +7,9 @@ members = [
     "semantic",
     "runtime",
     "interpreter",
+    "lang-lsp",
     "langc",
+    "lang",
 ]
 
 [workspace.package]
@@ -24,6 +26,7 @@ langp-parser = { path = "parser" }
 langp-semantic = { path = "semantic" }
 langp-runtime = { path = "runtime" }
 langp-interpreter = { path = "interpreter" }
+langp-lsp = { path = "lang-lsp" }
 
 # Faster debug builds (user-facing `cargo build` during development)
 [profile.dev]

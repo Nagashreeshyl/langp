@@ -7,3 +7,11 @@ function greet(name),
 
 @ Call the function with a name.
 greet("World").
+
+@ Loop 5 times and greet "Naga" each time.
+@ Note: loop variable `i` only exists inside the repeat block.
+repeat 5 times as i,
+    greet("Naga").
+..
+
+print "Loop ran successfully!".

@@ -10,9 +10,9 @@
 | IDE             | Lang Studio |
 | Language Server | Lang LSP    |
 
-## Install (macOS, Linux, Windows)
+## Install (one line)
 
-**One-line install** (downloads pre-built binary when available, otherwise builds from source):
+Installs `lang`, `langc`, `lang-lsp`, and the Cursor/VS Code extension automatically:
 
 ```bash
 # macOS / Linux
@@ -22,25 +22,49 @@ curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/in
 irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/install.ps1 | iex
 ```
 
-**Build from source** (fast profile — recommended):
+Then **reload Cursor/VS Code** and run:
 
 ```bash
-git clone https://github.com/Nagashreeshyl/langp.git
-cd langp
-./scripts/build-fast.sh
-export PATH="$PWD/target/release-fast:$PATH"
+lang run examples/hello.lp
+lang examples/hello.lp          # shorthand
 ```
 
-Add `~/.local/bin` to your PATH if the installer puts `langc` there.
+## Uninstall (one line)
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall.sh | sh
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall.ps1 | iex
+```
+
+## Learn to code
+
+**Start here:** [How to Code in Lang.P](docs/guides/HOW-TO-CODE.md) — complete beginner guide with loops, functions, conditionals, and Python comparisons.
+
+## IDE support (Cursor / VS Code)
+
+The install script sets up everything automatically — no `cursor` CLI needed:
+
+- `.lp` file icon in the explorer
+- Syntax highlighting and snippets
+- **Auto-indent** after `,` and **de-indent** on `..`
+- Autocomplete, error squiggles, hover, go-to-definition (via `lang-lsp`)
+
+If you cloned the repo locally instead:
+
+```bash
+./scripts/install.sh
+```
 
 ## Run programs
 
 ```bash
-langc run examples/hello.lp          # execute
-langc check examples/input_demo.lp   # semantic check
-langc build examples/hello.lp -o hello   # build runnable bundle
-langc --emit ast examples/hello.lp   # debug AST as JSON
-langc --version
+lang run examples/hello.lp       # run (recommended)
+lang examples/hello.lp           # same thing
+lang check examples/hello.lp     # check for errors
+langc --emit ast examples/hello.lp   # compiler/debug tools
 ```
 
 ## Quick Example
@@ -67,6 +91,8 @@ Output: `Hello World!`
     /runtime       — Runtime values and errors
     /interpreter   — Tree-walking interpreter
     /langc         — Compiler CLI
+    /lang-lsp      — Language Server (IDE autocomplete, diagnostics)
+    /editors       — VS Code / Cursor extension
     /scripts       — install.sh, install.ps1, build-fast.sh
     /examples      — Example programs
     /tests         — Integration & conformance tests
@@ -89,8 +115,8 @@ Output: `Hello World!`
 | 10    | Package manager                | Pending     |
 | 11    | Navigator framework            | Pending     |
 | 12    | AI framework                   | Pending     |
-| 13    | Language Server                | Pending     |
-| 14    | Lang Studio IDE                | Pending     |
+| 13    | Language Server                | **Complete** |
+| 14    | Lang Studio IDE                | Partial (VS Code/Cursor extension) |
 
 ## Faster compilation
 
@@ -104,8 +130,7 @@ Debug builds use optimized dependencies (`opt-level = 1/2`). For daily use:
 
 ## Documentation
 
-The authoritative language specification lives in [`docs/spec/`](docs/spec/).
-
+- **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** — beginner guide (start here)
 - [Language Specification Index](docs/spec/README.md)
 - [Full Specification (single document)](docs/spec/LANGP-SPEC.md)
 - [Formal Grammar (EBNF)](docs/grammar/README.md)

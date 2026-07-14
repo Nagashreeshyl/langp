@@ -1,17 +1,13 @@
 [package]
-name = "langc"
-description = "Lang.P compiler CLI"
+name = "langp-lsp"
+description = "Language Server Protocol implementation for Lang.P"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 authors.workspace = true
 
-[lib]
-name = "langc_cli"
-path = "src/lib.rs"
-
 [[bin]]
-name = "langc"
+name = "lang-lsp"
 path = "src/main.rs"
 
 [dependencies]
@@ -19,4 +15,6 @@ langp-lexer = { workspace = true }
 langp-ast = { workspace = true }
 langp-parser = { workspace = true }
 langp-semantic = { workspace = true }
-langp-interpreter = { workspace = true }
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"

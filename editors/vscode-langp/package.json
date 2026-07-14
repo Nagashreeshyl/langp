@@ -1,0 +1,122 @@
+{
+  "name": "langp-langp",
+  "displayName": "Lang.P",
+  "description": "Lang.P language support — syntax highlighting, icon, autocomplete, diagnostics, hover, and go-to-definition",
+  "version": "0.1.2",
+  "publisher": "Nagashreeshyl",
+  "license": "MIT",
+  "icon": "icons/langp.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nagashreeshyl/langp"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages", "Snippets", "Linters"],
+  "keywords": ["langp", "lang.p", "lang", "lp"],
+  "activationEvents": [
+    "onLanguage:langp",
+    "workspaceContains:**/*.lp",
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "langp",
+        "aliases": ["Lang.P", "LangP", "langp"],
+        "extensions": [".lp"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/langp.svg",
+          "dark": "./icons/langp.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "langp",
+        "scopeName": "source.langp",
+        "path": "./syntaxes/langp.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "langp",
+        "path": "./snippets/langp.json"
+      }
+    ],
+    "configuration": {
+      "title": "Lang.P",
+      "properties": {
+        "langp.languageServerPath": {
+          "type": "string",
+          "default": "lang-lsp",
+          "description": "Path to the lang-lsp language server binary (installed by the Lang.P install script)"
+        },
+        "langp.enableLanguageServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Lang.P language server (autocomplete, diagnostics, hover)"
+        }
+      }
+    },
+    "configurationDefaults": {
+      "files.associations": {
+        "*.lp": "langp"
+      },
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          { "scope": "comment.line.langp", "settings": { "foreground": "#6A9955", "fontStyle": "italic" } },
+          { "scope": "string.quoted.double.langp", "settings": { "foreground": "#CE9178" } },
+          { "scope": "string.quoted.single.langp", "settings": { "foreground": "#CE9178" } },
+          { "scope": "keyword.control.langp", "settings": { "foreground": "#C586C0" } },
+          { "scope": "keyword.control.compound.langp", "settings": { "foreground": "#C586C0" } },
+          { "scope": "keyword.declaration.langp", "settings": { "foreground": "#569CD6" } },
+          { "scope": "keyword.operator.langp", "settings": { "foreground": "#D4D4D4" } },
+          { "scope": "constant.language.langp", "settings": { "foreground": "#569CD6" } },
+          { "scope": "constant.numeric.langp", "settings": { "foreground": "#B5CEA8" } },
+          { "scope": "support.function.builtin.langp", "settings": { "foreground": "#DCDCAA" } },
+          { "scope": "entity.name.function.langp", "settings": { "foreground": "#DCDCAA" } },
+          { "scope": "entity.name.function.call.langp", "settings": { "foreground": "#DCDCAA" } },
+          { "scope": "entity.name.type.langp", "settings": { "foreground": "#4EC9B0" } },
+          { "scope": "support.type.langp", "settings": { "foreground": "#4EC9B0" } },
+          { "scope": "punctuation.terminator.block.langp", "settings": { "foreground": "#FFD700" } },
+          { "scope": "punctuation.terminator.statement.langp", "settings": { "foreground": "#D4D4D4" } },
+          { "scope": "variable.other.readwrite.langp", "settings": { "foreground": "#9CDCFE" } }
+        ]
+      },
+      "[langp]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.autoIndent": "full",
+        "editor.formatOnType": false,
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.quickSuggestions": {
+          "other": "on",
+          "comments": "off",
+          "strings": "on"
+        },
+        "editor.wordBasedSuggestions": "off",
+        "editor.suggest.showKeywords": true,
+        "editor.suggest.showSnippets": true,
+        "editor.bracketPairColorization.enabled": true
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.0.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

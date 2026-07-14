@@ -53,8 +53,15 @@ impl Checker {
         for item in &program.items {
             self.collect_item(item);
         }
+        let mut module_locals = HashSet::new();
         for item in &program.items {
-            self.check_item(item);
+            match item {
+                ModuleItem::Stmt(stmt) => {
+                    self.check_stmt(stmt, &module_locals);
+                    self.collect_bindings(stmt, &mut module_locals);
+                }
+                _ => self.check_item(item),
+            }
         }
     }
 
@@ -142,6 +149,11 @@ impl Checker {
                     scope.insert(v.clone());
                 }
             },
+            Stmt::Repeat(r) => {
+                if let RepeatStmt::Count { var: Some(name), .. } = r {
+                    scope.insert(name.clone());
+                }
+            },
             Stmt::Try(t) => {
                 for c in &t.catches {
                     scope.insert(c.name.clone());
@@ -179,15 +191,29 @@ impl Checker {
                 }
             }
             Stmt::Repeat(r) => match r {
-                RepeatStmt::Count { count, body, .. } => {
+                RepeatStmt::Count { count, var, body, .. } => {
                     self.check_expr(count, locals);
-                    self.check_block(body, locals);
+                    let mut loop_locals = locals.clone();
+                    if let Some(name) = var {
+                        loop_locals.insert(name.clone());
+                    }
+                    self.check_block(body, &loop_locals);
                 }
                 RepeatStmt::Forever { body, .. } => self.check_block(body, locals),
             },
             Stmt::For(f) => {
                 self.check_expr(&f.iterable, locals);
-                self.check_block(&f.body, locals);
+                let mut loop_locals = locals.clone();
+                match &f.binding {
+                    ForBinding::Single(name, _) => {
+                        loop_locals.insert(name.clone());
+                    }
+                    ForBinding::KeyValue(k, v, _) => {
+                        loop_locals.insert(k.clone());
+                        loop_locals.insert(v.clone());
+                    }
+                }
+                self.check_block(&f.body, &loop_locals);
             }
             Stmt::While(w) => {
                 self.check_expr(&w.condition, locals);

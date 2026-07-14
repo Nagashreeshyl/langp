@@ -17,19 +17,19 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact: langc-x86_64-unknown-linux-gnu
+            suffix: x86_64-unknown-linux-gnu
           - os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
-            artifact: langc-aarch64-unknown-linux-gnu
+            suffix: aarch64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
-            artifact: langc-x86_64-apple-darwin
+            suffix: x86_64-apple-darwin
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact: langc-aarch64-apple-darwin
+            suffix: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: langc-x86_64-pc-windows-msvc.exe
+            suffix: x86_64-pc-windows-msvc.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -42,27 +42,53 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Build langc (release-fast)
-        run: cargo build --profile release-fast -p langc --target ${{ matrix.target }}
+      - name: Build lang, langc, and lang-lsp (release-fast)
+        run: |
+          cargo build --profile release-fast -p lang -p langc -p langp-lsp --target ${{ matrix.target }}
 
-      - name: Stage artifact
+      - name: Stage artifacts
         shell: bash
         run: |
           mkdir -p dist
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            cp "target/${{ matrix.target }}/release-fast/langc.exe" "dist/${{ matrix.artifact }}"
+            for bin in lang langc lang-lsp; do
+              cp "target/${{ matrix.target }}/release-fast/${bin}.exe" "dist/${bin}-${{ matrix.suffix }}"
+            done
           else
-            cp "target/${{ matrix.target }}/release-fast/langc" "dist/${{ matrix.artifact }}"
-            chmod +x "dist/${{ matrix.artifact }}"
+            for bin in lang langc lang-lsp; do
+              cp "target/${{ matrix.target }}/release-fast/${bin}" "dist/${bin}-${{ matrix.suffix }}"
+            done
+            chmod +x dist/*
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}
+          name: binaries-${{ matrix.suffix }}
+          path: dist/*
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build VS Code extension
+        run: |
+          cd editors/vscode-langp
+          npm ci
+          npm run compile
+          npm run package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: editors/vscode-langp/*.vsix
 
   release:
-    needs: build
+    needs: [build, extension]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 

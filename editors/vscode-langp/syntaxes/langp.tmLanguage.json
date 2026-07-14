@@ -1,0 +1,164 @@
+{
+  "name": "Lang.P",
+  "scopeName": "source.langp",
+  "fileTypes": ["lp"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords-compound" },
+    { "include": "#keywords-control" },
+    { "include": "#keywords-declaration" },
+    { "include": "#keywords-operator" },
+    { "include": "#constants" },
+    { "include": "#builtins" },
+    { "include": "#types" },
+    { "include": "#block-delimiters" },
+    { "include": "#operators" },
+    { "include": "#function-def" },
+    { "include": "#function-call" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.langp",
+          "match": "@.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.langp",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.langp", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.langp",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.langp",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "keywords-compound": {
+      "patterns": [
+        {
+          "name": "keyword.control.compound.langp",
+          "match": "\\b(otherwise if|repeat forever|wait for)\\b"
+        }
+      ]
+    },
+    "keywords-control": {
+      "patterns": [
+        {
+          "name": "keyword.control.langp",
+          "match": "\\b(if|otherwise|else|repeat|forever|for|while|try|catch|finally|break|continue|return|on|match|await|async|times)\\b"
+        }
+      ]
+    },
+    "keywords-declaration": {
+      "patterns": [
+        {
+          "name": "storage.type.function.langp",
+          "match": "\\bfunction\\b"
+        },
+        {
+          "name": "storage.type.langp",
+          "match": "\\b(type|enum|interface|use|let|static)\\b"
+        }
+      ]
+    },
+    "keywords-operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.word.langp",
+          "match": "\\b(and|or|not|in|with|as|is|input)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.langp",
+          "match": "\\b(true|false|null|self|super|this|pass)\\b"
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.langp",
+          "match": "\\b(print|len|to_string|assert|read|write|append|get|post|put|delete|patch|copy|move|rename)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.langp",
+          "match": "\\b(String|Int|Float|Bool|List|Dict|Void|Any|Object|Char)\\b"
+        },
+        {
+          "name": "entity.name.type.langp",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "block-delimiters": {
+      "patterns": [
+        {
+          "name": "punctuation.section.block.end.langp",
+          "match": "\\.\\."
+        },
+        {
+          "name": "punctuation.terminator.statement.langp",
+          "match": "(?<=\\S)\\.(?!\\.)"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.langp",
+          "match": "->|=>|\\+\\+|\\+\\=|\\-\\=|\\*\\=|\\/\\=|\\%\\=|\\=\\=|\\!\\=|\\*\\*|//|\\?\\?|,|:|\\+|\\-|\\*|\\/|\\%|\\=|\\<|\\>|\\!"
+        }
+      ]
+    },
+    "function-def": {
+      "patterns": [
+        {
+          "name": "entity.name.function.langp",
+          "match": "(?<=\\bfunction\\s+)\\w+"
+        }
+      ]
+    },
+    "function-call": {
+      "patterns": [
+        {
+          "name": "meta.function-call.langp",
+          "match": "\\b\\w+(?=\\()"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.readwrite.langp",
+          "match": "\\b[a-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

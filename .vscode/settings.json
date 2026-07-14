@@ -1,0 +1,19 @@
+{
+  "files.associations": {
+    "*.lp": "langp"
+  },
+  "[langp]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "full",
+    "editor.quickSuggestions": {
+      "other": "on",
+      "comments": "off",
+      "strings": "on"
+    },
+    "editor.suggest.showSnippets": true,
+    "editor.wordBasedSuggestions": "off"
+  },
+  "langp.languageServerPath": "lang-lsp",
+  "langp.enableLanguageServer": true
+}

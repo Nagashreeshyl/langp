@@ -2,7 +2,9 @@
 # Fast local build — use this instead of plain `cargo build` during development.
 set -e
 cd "$(dirname "$0")/.."
-cargo build --profile release-fast -p langc "$@"
+cargo build --profile release-fast -p lang -p langc -p langp-lsp "$@"
 echo ""
+echo "✓ $(pwd)/target/release-fast/lang"
 echo "✓ $(pwd)/target/release-fast/langc"
-echo "  langc run examples/hello.lp"
+echo "✓ $(pwd)/target/release-fast/lang-lsp"
+echo "  lang run examples/hello.lp"

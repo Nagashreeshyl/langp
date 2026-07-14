@@ -1,0 +1,39 @@
+---
+description: Lang.P (.lp) language syntax and conventions for AI-assisted editing
+globs: **/*.lp
+alwaysApply: false
+---
+
+# Lang.P editing rules
+
+Lang.P uses `.lp` files. Every statement ends with `.` (period). Blocks open with `,` (comma) and close with `..` (double dot).
+
+## Syntax
+
+- Comments: `@ comment here`
+- Functions: `function name(params),` body `.`
+- Print: `print "text" with variable.`
+- Loops: `repeat 5 times,` or `repeat 5 times as i,` ... `..`
+- Conditionals: `if cond,` ... `otherwise,` ... `..`
+- String concat: use `with`, never `+`
+
+## Indentation
+
+- After a line ending with `,` → indent next line
+- Line with `..` → dedent (end block)
+
+## Examples
+
+```lp
+function greet(name),
+    print "Hello " with name with "!".
+.
+
+repeat 3 times as i,
+    greet("World").
+..
+
+greet("User").
+```
+
+Always suggest valid Lang.P — trailing `.` on statements, `..` to close blocks.

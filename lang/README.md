@@ -1,32 +1,24 @@
 # lang
 
-Package manager CLI for Lang.P. Handles dependencies, building, testing, and publishing.
+User-facing CLI for Lang.P — run programs with one simple command.
 
 ## Usage
 
 ```bash
-lang init my-project          # Create new project
-lang init --template browser  # Create from template
-lang build                    # Build the project
-lang run                      # Build and run
-lang test                     # Run tests
-lang add requests             # Add dependency
-lang publish                  # Publish to registry
+lang run examples/hello.lp    # run a program
+lang examples/hello.lp        # same thing (shorthand)
+lang check examples/hello.lp  # check for errors
+lang --version
 ```
 
-## Responsibilities
+## Install
 
-- Project initialization from templates
-- Dependency resolution and lock file management
-- Build orchestration (invoke `langc`)
-- Test runner integration
-- Package publishing to registry
-- Registry search and package info
+One line (installs `lang`, `langc`, `lang-lsp`, and the Cursor/VS Code extension):
 
-## Status
+```bash
+curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/install.sh | sh
+```
 
-Phase 10 (not yet implemented). See [Chapter 20 — Package System](../docs/spec/20-package-system.md).
+## Package manager (future)
 
-## Configuration
-
-Projects are configured via `lang.toml` at the project root.
+Long term, `lang` will also handle project init, dependencies, and publishing. For now it focuses on running `.lp` files.

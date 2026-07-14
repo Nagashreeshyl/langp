@@ -20,7 +20,9 @@
 
 # IDE / editor
 /.idea/
-/.vscode/
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
 *.swp
 *.swo
 *~
@@ -39,8 +41,11 @@
 # Logs
 *.log
 
-# Node (Lang Studio)
+# Node (Lang Studio / VS Code extension)
 node_modules/
+editors/vscode-langp/node_modules/
+editors/vscode-langp/*.vsix
+editors/vscode-langp/out/
 
 # Rust — keep Cargo.lock for reproducible langc builds
 

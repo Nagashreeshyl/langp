@@ -1,0 +1,14 @@
+[package]
+name = "lang"
+description = "Lang.P — run programs with `lang run file.lp`"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "lang"
+path = "src/main.rs"
+
+[dependencies]
+langc_cli = { path = "../langc", package = "langc" }

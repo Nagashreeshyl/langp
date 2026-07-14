@@ -1,38 +1,30 @@
-# Lang LSP
+# lang-lsp
 
-Language Server Protocol implementation for Lang.P. Powers IDE features across all editors.
+Language Server Protocol (LSP) implementation for Lang.P — powers IDE features in Cursor, VS Code, and any LSP-compatible editor.
 
-## Capabilities
+## Features
 
-| Feature | LSP Method | Version |
-|---------|-----------|---------|
-| Diagnostics | `textDocument/publishDiagnostics` | v0.1 |
-| Autocomplete | `textDocument/completion` | v0.1 |
-| Hover documentation | `textDocument/hover` | v0.1 |
-| Go to definition | `textDocument/definition` | v0.1 |
-| Find references | `textDocument/references` | v0.1 |
-| Rename symbol | `textDocument/rename` | v0.1 |
-| Formatting | `textDocument/formatting` | v0.1 |
-| Semantic highlighting | `textDocument/semanticTokens` | v0.1 |
-| Signature help | `textDocument/signatureHelp` | v0.1 |
+- **Diagnostics** — parse errors and semantic analysis (undefined symbols, type errors, etc.)
+- **Autocomplete** — keywords, builtins, snippets, and symbols from the current file
+- **Hover** — keyword docs and function signatures
+- **Go to definition** — jump to function, type, or enum declarations
+- **Document symbols** — outline view in the sidebar
 
-## Responsibilities
+## Build
 
-- Incremental parsing and type checking
-- Symbol indexing across project files
-- Auto-indentation on `,` and dedentation on `..`
-- Code formatting (`langfmt` integration)
-- Refactoring support
+```bash
+cargo build --profile release-fast -p langp-lsp
+# binary: target/release-fast/lang-lsp
+```
 
-## Status
+## Use with editors
 
-Phase 13 (not yet implemented). See [Chapter 21 — Tooling](../docs/spec/21-tooling.md).
+Install the official extension: [`editors/vscode-langp`](../editors/vscode-langp/README.md)
 
-## Dependencies
+The extension spawns `lang-lsp` on stdio when you open a `.lp` file. Ensure `lang-lsp` is on your PATH (included in the main install script).
 
-- `compiler/` — parser and semantic analyzer
-- `ast/` — tree definitions
+## Manual test
 
-## Editor Integration
-
-Used by Lang Studio, VS Code, Cursor, Neovim, and JetBrains via the standard LSP protocol.
+```bash
+lang-lsp   # waits on stdin/stdout — normally started by the editor
+```
