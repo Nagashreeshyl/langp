@@ -129,9 +129,14 @@ else
 fi
 
 if [ "$SKIP_EXT" != "1" ]; then
+  echo ""
+  echo "Installing Lang.P IDE extensions (colors, autocomplete)..."
   EXT_SCRIPT="$(mktemp)"
   if curl -fsSL "https://raw.githubusercontent.com/${REPO}/main/scripts/install-extension.sh" -o "$EXT_SCRIPT" 2>/dev/null; then
-    sh "$EXT_SCRIPT" || true
+    sh "$EXT_SCRIPT" || {
+      echo "  ⚠ Extension install failed — run manually after clone:" >&2
+      echo "    curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install-extension.sh | sh" >&2
+    }
     rm -f "$EXT_SCRIPT"
   elif root="$(find_local_repo)" && [ -f "$root/scripts/install-extension.sh" ]; then
     sh "$root/scripts/install-extension.sh" || true
@@ -152,5 +157,9 @@ echo "Run a program:"
 echo "  lang run examples/hello.lp"
 echo ""
 echo "Activate IDE colors:"
-echo "  Quit Cursor completely (Cmd+Q), then reopen your project."
-echo "  Or: Cmd+Shift+P → type 'reload' → pick any Reload/Restart option."
+echo "  1. Fully QUIT Antigravity / Cursor / VS Code (Cmd+Q)"
+echo "  2. Reopen and open a .lp file in the editor tab"
+echo "  3. Bottom-right should say Lang.P (not Plain Text)"
+echo "  If still Plain Text: Cmd+Shift+P → 'Lang.P: Set language mode'"
+echo ""
+echo "Or run from a cloned repo: ./scripts/fix-ide.sh"

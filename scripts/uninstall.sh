@@ -4,7 +4,7 @@
 set -e
 
 INSTALL_DIR="${LANGP_INSTALL_DIR:-$HOME/.local/bin}"
-VERSION="${LANGP_EXT_VERSION:-0.2.2}"
+VERSION="${LANGP_EXT_VERSION:-0.2.4}"
 
 echo "Lang.P uninstaller"
 echo ""
@@ -20,12 +20,16 @@ for bin in lang langc lang-lsp; do
 done
 
 for ext_root in \
+  "$HOME/.antigravity-ide/extensions" \
+  "$HOME/.antigravity/extensions" \
   "$HOME/.cursor/extensions" \
   "$HOME/.vscode/extensions" \
-  "$HOME/.antigravity/extensions" \
-  "$HOME/.antigravity-ide/extensions"; do
+  "$HOME/Library/Application Support/Antigravity IDE/User/extensions" \
+  "$HOME/Library/Application Support/Antigravity/User/extensions" \
+  "$HOME/Library/Application Support/Cursor/User/extensions" \
+  "$HOME/Library/Application Support/Code/User/extensions"; do
   [ -d "$ext_root" ] || continue
-  for dir in "$ext_root"/[Nn]agashreeshyl.langp*; do
+  for dir in "$ext_root"/[Nn]agashreeshyl.langp* "$ext_root"/[Nn]agashreeshyl.langp-grammar*; do
     [ -d "$dir" ] || continue
     rm -rf "$dir"
     echo "  ✓ removed extension $dir"

@@ -2,53 +2,52 @@
 # Install Lang.P extensions into Cursor, Antigravity, VS Code (no CLI required).
 set -e
 
-ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-export LANGP_EXT_VERSION="${LANGP_EXT_VERSION:-0.2.2}"
-
-if [ -d "$ROOT/editors/langp-grammar" ]; then
-  sh "$ROOT/scripts/install-ide-extensions.sh"
-  exit 0
-fi
-
-# Fallback when run from curl|sh without full repo — download release VSIX
 REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
-VERSION="${LANGP_EXT_VERSION}"
-RELEASE_TAG="${LANGP_VERSION:-latest}"
+CACHE_DIR="${LANGP_CACHE_DIR:-$HOME/.cache/langp-src}"
+export LANGP_EXT_VERSION="${LANGP_EXT_VERSION:-0.2.4}"
 
-if [ "$RELEASE_TAG" = "latest" ]; then
-  RELEASE_TAG="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-    | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-    | head -1)" || true
-  [ -n "$RELEASE_TAG" ] || RELEASE_TAG="v0.2.1"
-fi
-
-VSIX_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/langp-${VERSION}.vsix"
-VSIX_TMP="$(mktemp).vsix"
-
-echo "Installing Lang.P editor extension from release..."
-if ! curl -fsSL "$VSIX_URL" -o "$VSIX_TMP" 2>/dev/null; then
-  echo "  ⚠ Could not download $VSIX_URL"
-  exit 0
-fi
-
-tmp="$(mktemp -d)"
-unzip -q "$VSIX_TMP" -d "$tmp"
-EXT_ID="Nagashreeshyl.langp-${VERSION}"
-
-for ext_root in \
-  "$HOME/.cursor/extensions" \
-  "$HOME/.vscode/extensions" \
-  "$HOME/.antigravity/extensions" \
-  "$HOME/.antigravity-ide/extensions"; do
-  parent="$(dirname "$ext_root")"
-  if [ -d "$parent" ] || [ "$ext_root" = "$HOME/.cursor/extensions" ]; then
-    mkdir -p "$ext_root"
-    rm -rf "$ext_root/$EXT_ID"
-    cp -R "$tmp/extension" "$ext_root/$EXT_ID"
-    rm -f "$ext_root/extensions.json"
-    echo "  ✓ → $ext_root/$EXT_ID"
+find_local_repo() {
+  case "$0" in
+    sh|bash|dash) return 1 ;;
+  esac
+  script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)" || return 1
+  root="$(CDPATH= cd -- "$script_dir/.." && pwd)" || return 1
+  if [ -f "$root/Cargo.toml" ] && [ -d "$root/editors/langp-grammar" ]; then
+    echo "$root"
+    return 0
   fi
-done
+  return 1
+}
 
-rm -rf "$tmp" "$VSIX_TMP"
-echo "  ✓ extension installed — restart your IDE"
+ensure_repo() {
+  if root="$(find_local_repo)"; then
+    echo "$root"
+    return 0
+  fi
+
+  echo "Fetching Lang.P editor extensions from GitHub..."
+  if ! command -v git >/dev/null 2>&1; then
+    echo "  ✗ git is required to install IDE extensions." >&2
+    echo "    Install git, or clone https://github.com/${REPO} and run:" >&2
+    echo "    ./scripts/fix-ide.sh" >&2
+    return 1
+  fi
+
+  if [ -d "$CACHE_DIR/.git" ]; then
+    git -C "$CACHE_DIR" fetch --depth 1 origin main 2>/dev/null || true
+    git -C "$CACHE_DIR" reset --hard origin/main 2>/dev/null || true
+  else
+    rm -rf "$CACHE_DIR"
+    git clone --depth 1 "https://github.com/${REPO}.git" "$CACHE_DIR"
+  fi
+
+  if [ ! -d "$CACHE_DIR/editors/langp-grammar" ]; then
+    echo "  ✗ editors/langp-grammar missing in cloned repo" >&2
+    return 1
+  fi
+
+  echo "$CACHE_DIR"
+}
+
+root="$(ensure_repo)" || exit 1
+sh "$root/scripts/install-ide-extensions.sh"
