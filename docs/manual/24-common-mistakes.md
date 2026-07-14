@@ -78,6 +78,28 @@ if ready,
 
 ---
 
+## Using `end` or `end.` (Python/Lua habit)
+
+Lang.P does **not** use `end`, `end.`, or `}` to close blocks.
+
+**Wrong**
+
+```lp
+function greet(name),
+    print "Hello " with name.
+end.
+```
+
+**Right**
+
+```lp
+function greet(name),
+    print "Hello " with name.
+..
+```
+
+---
+
 ## Using `+` instead of `with` for strings
 
 **Wrong**

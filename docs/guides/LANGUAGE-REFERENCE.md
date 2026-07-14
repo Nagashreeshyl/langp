@@ -125,7 +125,7 @@ add(3, 5).
 
 | Keyword | Usage |
 |---------|--------|
-| `function name(params),` | Define a function; body ends with `.` |
+| `function name(params),` | Define a function; statements inside end with `.`, block closes with `..` |
 | `return value.` | Return from a function |
 
 ---

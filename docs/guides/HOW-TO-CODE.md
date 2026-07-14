@@ -281,6 +281,7 @@ finally,
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `expected StmtEnd` | Missing `.` at end of line | Add `.` |
+| `end` / `end.` on a line | Python/Lua habit — not Lang.P | Use `..` on its own line to close blocks |
 | `undefined variable 'i'` | Using loop variable outside its block | Only use `i` inside `repeat ... ..` |
 | `undefined name 'X'` | Variable not defined yet | Assign before use |
 | `semantic errors prevent execution` | Type/name errors | Run `lang check file.lp` |
@@ -322,16 +323,18 @@ myproject/
 
 ---
 
-## IDE features (Cursor / VS Code)
+## IDE features (Cursor / VS Code / Antigravity)
 
-After install + reload:
+After install + **full quit and reopen** (Cmd+Q):
 
 - **Syntax colors** — keywords, strings, comments, functions
-- **Autocomplete** — type `fun` → suggests `function` snippet
-- **Error squiggles** — red underlines on mistakes
+- **Autocomplete** — type `fun` → suggests `function` snippet (closes with `..`)
+- **Error squiggles** — from `lang check` on save (not AI suggestions)
 - **Hover** — docs on keywords
 - **Auto-indent** — after `,` indent; on `..` de-indent
-- **Go to definition** — click a function name to jump to it
+- **Quick fix** — replace mistaken `end.` with `..`
+
+**Lang.P never uses `end` or `end.`** — blocks always close with `..`.
 
 If colors don't appear: bottom-right language mode → select **Lang.P**, then reload window.
 
@@ -343,7 +346,7 @@ If colors don't appear: bottom-right language mode → select **Lang.P**, then r
 |--------|--------|
 | `# comment` | `@ comment` |
 | `print("hi")` | `print "hi".` |
-| `def f(x):` | `function f(x),` ... `.` |
+| `def f(x):` | `function f(x),` ... `..` |
 | `if x:` | `if x,` ... `..` |
 | `elif x:` | `otherwise if x,` |
 | `else:` | `otherwise,` |
