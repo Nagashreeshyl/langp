@@ -352,18 +352,7 @@ impl Checker {
     fn is_builtin(&self, name: &str) -> bool {
         matches!(
             name,
-            "len"
-                | "to_string"
-                | "assert"
-                | "read"
-                | "read_bytes"
-                | "read_lines"
-                | "get"
-                | "post"
-                | "put"
-                | "delete"
-                | "patch"
-                | "print"
+            "len" | "to_string" | "assert" | "read" | "read_bytes" | "read_lines" | "print"
         )
     }
 }

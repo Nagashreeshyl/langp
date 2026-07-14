@@ -14,5 +14,5 @@ if [ ! -x "$LANG" ] || [ ! -x "$LSP" ]; then
   sh "$ROOT/scripts/install.sh" || true
 fi
 
-export LANGP_EXT_VERSION="${LANGP_EXT_VERSION:-0.2.2}"
+export LANGP_EXT_VERSION="${LANGP_EXT_VERSION:-0.2.3}"
 sh "$ROOT/scripts/install-ide-extensions.sh"

@@ -2,7 +2,7 @@
   "name": "langp",
   "displayName": "Lang.P Services",
   "description": "Lang.P — error underlines, autocomplete, LSP, run command",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "Nagashreeshyl",
   "license": "MIT",
   "icon": "icons/langp.png",

@@ -60,24 +60,6 @@ impl LangpServer {
         parse(text).ok()
     }
 
-    fn symbols_from_program(program: &Program) -> Vec<(String, CompletionItemKind)> {
-        let mut out = Vec::new();
-        for item in &program.items {
-            match item {
-                ModuleItem::Function(f) => {
-                    out.push((f.name.clone(), CompletionItemKind::FUNCTION));
-                }
-                ModuleItem::Type(t) => {
-                    out.push((t.name.clone(), CompletionItemKind::CLASS));
-                }
-                ModuleItem::Enum(e) => {
-                    out.push((e.name.clone(), CompletionItemKind::ENUM));
-                }
-                _ => {}
-            }
-        }
-        out
-    }
 
     fn functions_from_program(program: &Program) -> Vec<&FunctionDecl> {
         program
@@ -103,16 +85,7 @@ impl tower_lsp::LanguageServer for LangpServer {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     TextDocumentSyncKind::FULL,
                 )),
-                completion_provider: Some(CompletionOptions {
-                    trigger_characters: Some(vec![
-                        ".".into(),
-                        " ".into(),
-                        "(".into(),
-                        ",".into(),
-                    ]),
-                    resolve_provider: Some(false),
-                    ..Default::default()
-                }),
+                completion_provider: None,
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 definition_provider: Some(OneOf::Left(true)),
                 document_symbol_provider: Some(OneOf::Left(true)),
@@ -155,50 +128,6 @@ impl tower_lsp::LanguageServer for LangpServer {
 
     async fn did_save(&self, params: DidSaveTextDocumentParams) {
         self.publish_diagnostics(&params.text_document.uri).await;
-    }
-
-    async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
-        let uri = params.text_document_position.text_document.uri.to_string();
-        let docs = self.documents.read().await;
-        let Some(text) = docs.get(&uri) else {
-            return Ok(None);
-        };
-
-        let mut items = keyword_completions();
-
-        if let Some(program) = Self::analyze_document(text) {
-            for (name, kind) in Self::symbols_from_program(&program) {
-                items.push(CompletionItem {
-                    label: name.clone(),
-                    kind: Some(kind),
-                    detail: Some("Lang.P symbol".into()),
-                    insert_text: Some(name),
-                    ..Default::default()
-                });
-            }
-        }
-
-        for builtin in BUILTINS {
-            items.push(CompletionItem {
-                label: (*builtin).into(),
-                kind: Some(CompletionItemKind::FUNCTION),
-                detail: Some("builtin".into()),
-                ..Default::default()
-            });
-        }
-
-        for snippet in SNIPPETS {
-            items.push(CompletionItem {
-                label: snippet.label.into(),
-                kind: Some(CompletionItemKind::SNIPPET),
-                detail: Some(snippet.detail.into()),
-                insert_text: Some(snippet.body.into()),
-                insert_text_format: Some(InsertTextFormat::SNIPPET),
-                ..Default::default()
-            });
-        }
-
-        Ok(Some(CompletionResponse::Array(items)))
     }
 
     async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
@@ -420,65 +349,8 @@ fn is_ident_part(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '_'
 }
 
-fn keyword_completions() -> Vec<CompletionItem> {
-    KEYWORDS
-        .iter()
-        .map(|kw| CompletionItem {
-            label: (*kw).into(),
-            kind: Some(CompletionItemKind::KEYWORD),
-            detail: Some("keyword".into()),
-            ..Default::default()
-        })
-        .collect()
-}
-
-const KEYWORDS: &[&str] = &[
-    "and", "as", "async", "await", "break", "catch", "continue", "else", "enum", "false",
-    "finally", "for", "forever", "function", "if", "in", "input", "interface", "let", "match",
-    "not", "null", "on", "or", "otherwise", "otherwise if", "repeat", "repeat forever", "return",
-    "self", "static", "super", "this", "true", "try", "type", "use", "wait", "wait for", "while",
-    "with",
-];
-
-const BUILTINS: &[&str] = &[
-    "print", "len", "to_string", "assert", "read", "read_bytes", "read_lines", "write",
-    "write_bytes", "append", "get", "post", "put", "delete", "patch", "copy", "move", "rename",
-    "pass",
-];
-
-struct SnippetDef {
-    label: &'static str,
-    detail: &'static str,
-    body: &'static str,
-}
-
-const SNIPPETS: &[SnippetDef] = &[
-    SnippetDef {
-        label: "function",
-        detail: "function declaration",
-        body: "function ${1:name}(${2:params}),\n    ${3:pass}.\n.",
-    },
-    SnippetDef {
-        label: "if",
-        detail: "if statement",
-        body: "if ${1:condition},\n    ${2:pass}\n..",
-    },
-    SnippetDef {
-        label: "type",
-        detail: "type declaration",
-        body: "type ${1:Name},\n    ${2:field}: ${3:String}.\n.",
-    },
-    SnippetDef {
-        label: "input",
-        detail: "input expression",
-        body: "input ${1|text,number,decimal,boolean,password|} \"${2:prompt}\"",
-    },
-];
-
 const KEYWORD_DOCS: &[(&str, &str)] = &[
     ("function", "Define a function. Body opens with `,` and closes with `.`"),
-    ("type", "Define a record/class type with fields and methods"),
-    ("enum", "Define an enumeration type"),
     ("if", "Conditional — use `otherwise if` / `otherwise` for else branches"),
     ("repeat", "`repeat N times,` or `repeat forever,`"),
     ("for", "`for item in collection,` loop"),
@@ -487,9 +359,12 @@ const KEYWORD_DOCS: &[(&str, &str)] = &[
     ("input", "Read user input — `input text \"prompt\"` or typed variants"),
     ("with", "String concatenation in expressions: `\"Hello \" with name`"),
     ("print", "Print values — `print \"x\" with y.`"),
-    ("use", "Import a module — `use module.name.`"),
-    ("on", "Event handler — `on event,` … `..`"),
-    ("await", "Used with `wait for` for async HTTP"),
+    ("len", "Length of string, list, or dict"),
+    ("to_string", "Convert a value to string"),
+    ("assert", "Fail if condition is false"),
+    ("read", "Read file as text"),
+    ("read_bytes", "Read file as bytes"),
+    ("read_lines", "Read file as lines"),
+    ("pass", "No-op statement"),
     ("null", "Null literal value"),
-    ("self", "Reference to current object in methods"),
 ];

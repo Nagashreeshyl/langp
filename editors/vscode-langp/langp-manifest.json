@@ -1,0 +1,59 @@
+{
+  "version": "0.1",
+  "description": "Lang.P symbols implemented in the interpreter (v0.1). Update this when adding features.",
+  "keywords": [
+    { "name": "if", "signature": "if condition,", "doc": "Conditional block — closes with `..`" },
+    { "name": "otherwise", "signature": "otherwise,", "doc": "Else branch" },
+    { "name": "otherwise if", "signature": "otherwise if condition,", "doc": "Else-if branch" },
+    { "name": "repeat", "signature": "repeat N times,", "doc": "Repeat a block N times" },
+    { "name": "repeat forever", "signature": "repeat forever,", "doc": "Infinite loop" },
+    { "name": "for", "signature": "for item in collection,", "doc": "For-each loop" },
+    { "name": "while", "signature": "while condition,", "doc": "While loop" },
+    { "name": "try", "signature": "try,", "doc": "Try/catch block" },
+    { "name": "catch", "signature": "catch error,", "doc": "Catch errors" },
+    { "name": "finally", "signature": "finally,", "doc": "Always runs after try/catch" },
+    { "name": "function", "signature": "function name(params),", "doc": "Define a function" },
+    { "name": "return", "signature": "return value.", "doc": "Return from function" },
+    { "name": "break", "signature": "break.", "doc": "Exit loop" },
+    { "name": "continue", "signature": "continue.", "doc": "Next loop iteration" },
+    { "name": "pass", "signature": "pass.", "doc": "No-op statement" },
+    { "name": "with", "signature": "with", "doc": "String concatenation in expressions" },
+    { "name": "times", "signature": "times", "doc": "Used with `repeat N times`" },
+    { "name": "as", "signature": "as", "doc": "Loop counter alias" },
+    { "name": "in", "signature": "in", "doc": "For-loop / membership" },
+    { "name": "and", "signature": "and", "doc": "Logical AND" },
+    { "name": "or", "signature": "or", "doc": "Logical OR" },
+    { "name": "not", "signature": "not", "doc": "Logical NOT" },
+    { "name": "true", "signature": "true", "doc": "Boolean true" },
+    { "name": "false", "signature": "false", "doc": "Boolean false" },
+    { "name": "null", "signature": "null", "doc": "Null value" }
+  ],
+  "statements": [
+    { "name": "print", "signature": "print \"message\" with value.", "doc": "Print to stdout", "snippet": "print \"${1:message}\"." },
+    { "name": "write", "signature": "write value to \"path\".", "doc": "Write text to a file" },
+    { "name": "write_bytes", "signature": "write_bytes value to \"path\".", "doc": "Write bytes to a file" },
+    { "name": "append", "signature": "append value to \"path\".", "doc": "Append to a file" },
+    { "name": "copy", "signature": "copy \"src\" to \"dest\".", "doc": "Copy a file" },
+    { "name": "move", "signature": "move \"src\" to \"dest\".", "doc": "Move a file" },
+    { "name": "rename", "signature": "rename \"src\" to \"dest\".", "doc": "Rename a file" },
+    { "name": "delete", "signature": "delete \"path\".", "doc": "Delete a file" }
+  ],
+  "builtins": [
+    { "name": "len", "signature": "len(value)", "doc": "Length of string, list, or dict", "snippet": "len(${1:value})" },
+    { "name": "to_string", "signature": "to_string(value)", "doc": "Convert value to string", "snippet": "to_string(${1:value})" },
+    { "name": "assert", "signature": "assert condition.", "doc": "Fail if condition is false", "snippet": "assert ${1:condition}." }
+  ],
+  "expressions": [
+    { "name": "input", "signature": "input text \"prompt\"", "doc": "Read user input (text, number, decimal, boolean, password)", "snippet": "input text \"${1:prompt}\"" },
+    { "name": "read", "signature": "read \"path\"", "doc": "Read file as text", "snippet": "read \"${1:path}\"" },
+    { "name": "read_bytes", "signature": "read_bytes \"path\"", "doc": "Read file as bytes", "snippet": "read_bytes \"${1:path}\"" },
+    { "name": "read_lines", "signature": "read_lines \"path\"", "doc": "Read file as lines", "snippet": "read_lines \"${1:path}\"" }
+  ],
+  "inputTypes": ["text", "number", "decimal", "boolean", "password"],
+  "snippets": [
+    { "label": "if block", "detail": "if condition, … ..", "body": "if ${1:condition},\n\t${2:pass}\n.." },
+    { "label": "repeat", "detail": "repeat N times, … ..", "body": "repeat ${1:5} times,\n\t${2:pass}\n.." },
+    { "label": "for", "detail": "for item in items, … ..", "body": "for ${1:item} in ${2:items},\n\t${3:pass}\n.." },
+    { "label": "function", "detail": "function declaration", "body": "function ${1:name}(${2:params}),\n\t${3:pass}.\n." }
+  ]
+}

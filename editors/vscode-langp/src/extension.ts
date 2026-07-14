@@ -13,6 +13,8 @@ import {
   BUILTINS,
   INPUT_TYPES,
   KEYWORDS,
+  SNIPPETS,
+  STATEMENTS,
   entryToCompletion,
   findEntry,
   matchesPrefix,
@@ -148,30 +150,30 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
           }
 
           const items: vscode.CompletionItem[] = [];
+          const seen = new Set<string>();
 
-          for (const entry of BUILTINS) {
-            if (matchesPrefix(entry.name, prefix)) {
-              items.push(entryToCompletion(entry, prefix));
-            }
-          }
-          for (const entry of KEYWORDS) {
-            if (matchesPrefix(entry.name, prefix)) {
-              items.push(entryToCompletion(entry, prefix));
-            }
-          }
+          const addEntry = (entry: import("./langp-api").LangpEntry) => {
+            if (!matchesPrefix(entry.name, prefix) || seen.has(entry.name)) return;
+            seen.add(entry.name);
+            items.push(entryToCompletion(entry, prefix));
+          };
 
-          // Snippets only when user typed at least 1 char or invoked manually
+          for (const entry of STATEMENTS) addEntry(entry);
+          for (const entry of BUILTINS) addEntry(entry);
+          for (const entry of KEYWORDS) addEntry(entry);
+
           if (prefix.length >= 1) {
-            const snippets = [
-              { label: "if block", kind: vscode.CompletionItemKind.Snippet, sig: "if condition, … ..", text: "if ${1:condition},\n\t${2:pass}\n.." },
-              { label: "repeat", kind: vscode.CompletionItemKind.Snippet, sig: "repeat N times, … ..", text: "repeat ${1:5} times,\n\t${2:pass}\n.." },
-              { label: "for", kind: vscode.CompletionItemKind.Snippet, sig: "for item in items, … ..", text: "for ${1:item} in ${2:items},\n\t${3:pass}\n.." },
-            ];
-            for (const s of snippets) {
-              if (matchesPrefix(s.label, prefix) || matchesPrefix(s.label.replace(" block", ""), prefix)) {
-                const item = new vscode.CompletionItem(s.label, s.kind);
-                item.detail = s.sig;
-                item.insertText = new vscode.SnippetString(s.text);
+            for (const s of SNIPPETS) {
+              const key = s.label;
+              if (seen.has(key)) continue;
+              if (
+                matchesPrefix(s.label, prefix) ||
+                matchesPrefix(s.label.replace(" block", ""), prefix)
+              ) {
+                seen.add(key);
+                const item = new vscode.CompletionItem(s.label, vscode.CompletionItemKind.Snippet);
+                item.detail = s.detail;
+                item.insertText = new vscode.SnippetString(s.body);
                 item.sortText = `2_${s.label}`;
                 items.push(item);
               }

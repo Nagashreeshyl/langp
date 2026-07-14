@@ -3,7 +3,7 @@
 set -e
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-VERSION="${LANGP_EXT_VERSION:-0.2.2}"
+VERSION="${LANGP_EXT_VERSION:-0.2.3}"
 GRAMMAR_ID="Nagashreeshyl.langp-grammar-${VERSION}"
 SERVICES_ID="Nagashreeshyl.langp-${VERSION}"
 GRAMMAR_SRC="$ROOT/editors/langp-grammar"
