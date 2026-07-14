@@ -1,5 +1,7 @@
 # Chapter 16 — Standard Library
 
+> **Implemented today (v0.1):** See [Language Reference — implemented subset](../../guides/LANGUAGE-REFERENCE.md) for commands that actually work in the current interpreter. This chapter describes the full planned standard library.
+
 ## 16.1 Overview
 
 The Lang.P standard library provides production-quality modules for common tasks. All stdlib modules follow the language philosophy: APIs read like natural instructions.

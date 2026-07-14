@@ -6,6 +6,8 @@ Language specification, guides, and reference material for Lang.P.
 
 | Path | Description |
 |------|-------------|
+| [`guides/HOW-TO-CODE.md`](guides/HOW-TO-CODE.md) | Beginner tutorial — start here |
+| [`guides/LANGUAGE-REFERENCE.md`](guides/LANGUAGE-REFERENCE.md) | **All commands & functions implemented in v0.1** |
 | [`spec/`](spec/) | Authoritative language specification (22 chapters) |
 | [`spec/LANGP-SPEC.md`](spec/LANGP-SPEC.md) | Single-document specification for offline reading |
 | [`spec/glossary.md`](spec/glossary.md) | Term definitions |
@@ -25,8 +27,8 @@ The language specification is the foundation of the Lang.P project. All compiler
 
 | Path | Phase | Description |
 |------|-------|-------------|
+| `guides/` | 7+ | Tutorials and how-to guides (**HOW-TO-CODE**, **LANGUAGE-REFERENCE**) |
 | `grammar/` | 2 | Formal EBNF grammar (**complete**) |
-| `guides/` | 7+ | Tutorials and how-to guides |
 | `migrations/` | 1.0+ | Version migration guides |
 | `api/` | 7+ | Standard library API reference |
 

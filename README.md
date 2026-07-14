@@ -41,7 +41,10 @@ irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall
 
 ## Learn to code
 
-**Start here:** [How to Code in Lang.P](docs/guides/HOW-TO-CODE.md) — complete beginner guide with loops, functions, conditionals, and Python comparisons.
+| Guide | Description |
+|-------|-------------|
+| **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** | Beginner tutorial — loops, functions, conditionals |
+| **[Language Reference (v0.1)](docs/guides/LANGUAGE-REFERENCE.md)** | All commands & functions that work **right now** |
 
 ## IDE support (Cursor, Antigravity, VS Code, Windsurf)
 
@@ -144,6 +147,7 @@ Debug builds use optimized dependencies (`opt-level = 1/2`). For daily use:
 ## Documentation
 
 - **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** — beginner guide (start here)
+- **[Language Reference v0.1](docs/guides/LANGUAGE-REFERENCE.md)** — all implemented commands, keywords, and builtins
 - [Language Specification Index](docs/spec/README.md)
 - [Full Specification (single document)](docs/spec/LANGP-SPEC.md)
 - [Formal Grammar (EBNF)](docs/grammar/README.md)

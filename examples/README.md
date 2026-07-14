@@ -7,9 +7,12 @@ Example Lang.P programs demonstrating language features and framework usage.
 | File | Description |
 |------|-------------|
 | [`hello.lp`](hello.lp) | Canonical hello world |
-| [`browser.lp`](browser.lp) | Minimal Navigator browser |
-| [`server.lp`](server.lp) | HTTP server with routing |
-| [`agent.lp`](agent.lp) | AI assistant with Groq |
+| [`loops.lp`](loops.lp) | Loop examples |
+| [`input_demo.lp`](input_demo.lp) | User input types |
+| [`calculator.lp`](calculator.lp) | Math: + − × ÷ |
+| [`browser.lp`](browser.lp) | Minimal Navigator browser (planned) |
+| [`server.lp`](server.lp) | HTTP server (planned) |
+| [`agent.lp`](agent.lp) | AI assistant (planned) |
 
 ## Running Examples
 

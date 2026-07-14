@@ -223,15 +223,39 @@ Typed variants: `input number`, `input decimal`, `input boolean`, `input passwor
 
 ## String composition
 
-Always use `with` — **never** `+` for strings:
+Use `with` to join **text**. Use `+` `-` `*` `/` for **numbers** only.
 
 ```lp
-@ Correct
+@ Strings — use with
 message = "Hello " with name with "!".
 
-@ Wrong — compiler error
+@ Numbers — use + - * /
+print "Sum: " with (num1 + num2).
+print "Total: " with (a + b + c).
+```
+
+```lp
+@ Wrong for strings — do not use + on text
 @ message = "Hello " + name
 ```
+
+See [Language Reference — Math](LANGUAGE-REFERENCE.md#math-and-operators) for all operators.
+
+---
+
+## Math (calculator)
+
+```lp
+num1 = input number "Enter a number: ".
+num2 = input number "Enter another number: ".
+
+print "Sum: " with (num1 + num2).
+print "Difference: " with (num1 - num2).
+print "Product: " with (num1 * num2).
+print "Quotient: " with (num1 / num2).
+```
+
+Full example: `examples/calculator.lp`
 
 ---
 
@@ -270,6 +294,8 @@ finally,
 | `lang --version` | Show version |
 | `langc --emit ast file.lp` | Debug: show syntax tree |
 
+**All built-in keywords and functions:** [Language Reference (v0.1)](LANGUAGE-REFERENCE.md) — print, input, len, if, repeat, file I/O, and more.
+
 ---
 
 ## Project layout
@@ -289,6 +315,7 @@ myproject/
 | `examples/hello.lp` | Functions, loops, print |
 | `examples/loops.lp` | All loop types |
 | `examples/input_demo.lp` | User input |
+| `examples/calculator.lp` | Math: + − × ÷ |
 
 ---
 
@@ -327,6 +354,7 @@ If colors don't appear: bottom-right language mode → select **Lang.P**, then r
 
 ## Next steps
 
+- **[Language Reference (v0.1)](LANGUAGE-REFERENCE.md)** — all commands & functions that work now
 - Read the [full language specification](../spec/LANGP-SPEC.md)
 - Browse [examples/](../../examples/)
 - Run `lang check` on your code before `lang run`
