@@ -1,6 +1,6 @@
 //! Parser error types.
 
-use langp_lexer::Span;
+use langp_lexer::{Keyword, Span, TokenKind};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,3 +53,27 @@ impl fmt::Display for ParseError {
 }
 
 pub type ParseResult<T> = Result<T, ParseError>;
+
+/// Human-readable token name for error messages (not debug dumps like `StmtEnd`).
+pub fn token_label(kind: &TokenKind) -> &'static str {
+    match kind {
+        TokenKind::StmtEnd => "`.` (statement end)",
+        TokenKind::BlockClose => "`..` (block close)",
+        TokenKind::Comma => "`,`",
+        TokenKind::Newline => "end of line",
+        TokenKind::Indent => "indentation",
+        TokenKind::Dedent => "dedent",
+        TokenKind::Eof => "end of file",
+        TokenKind::String(_) => "a string",
+        TokenKind::Ident(_) => "an identifier",
+        TokenKind::Keyword(k) => match k {
+            Keyword::OtherwiseIf => "otherwise if",
+            Keyword::RepeatForever => "repeat forever",
+            Keyword::WaitFor => "wait for",
+            other => other.as_str(),
+        },
+        TokenKind::DotDot => "`..`",
+        TokenKind::Dot => "`.`",
+        _ => "a token",
+    }
+}

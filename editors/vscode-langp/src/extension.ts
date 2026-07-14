@@ -68,7 +68,12 @@ function parseDiagnostics(text: string, doc: vscode.TextDocument): vscode.Diagno
         errMatch[1].toLowerCase() === "warning"
           ? vscode.DiagnosticSeverity.Warning
           : vscode.DiagnosticSeverity.Error;
-      const message = errMatch[3];
+      let message = errMatch[3];
+      // Include "help:" lines from lang check output
+      while (i + 1 < lines.length && /^\s+help:/.test(lines[i + 1])) {
+        i += 1;
+        message += "\n" + lines[i].trim();
+      }
       const code = errMatch[2];
       let lineNum = 0;
       let col = 0;

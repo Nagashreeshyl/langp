@@ -415,11 +415,7 @@ impl Parser {
         if self.check(&TokenKind::BlockClose) {
             self.bump();
         } else {
-            return Err(ParseError::new(
-                ParseErrorKind::MissingBlockClose,
-                self.current_span(),
-                "expected `..` to close block",
-            ));
+            return Err(self.block_close_error());
         }
         let end = self.previous_span();
         Ok(IfStmt {
@@ -536,11 +532,7 @@ impl Parser {
         if self.check(&TokenKind::BlockClose) {
             self.bump();
         } else {
-            return Err(ParseError::new(
-                ParseErrorKind::MissingBlockClose,
-                self.current_span(),
-                "expected `..` to close block",
-            ));
+            return Err(self.block_close_error());
         }
         Ok(TryStmt {
             body,
@@ -1599,10 +1591,15 @@ impl Parser {
             self.bump();
             Ok(())
         } else {
+            let found = self
+                .peek_kind()
+                .map(|k| crate::error::token_label(&k).to_string())
+                .unwrap_or_else(|| "end of file".into());
+            let expected = crate::error::token_label(kind);
             Err(ParseError::new(
                 ParseErrorKind::UnexpectedToken,
                 self.current_span(),
-                format!("expected {:?}", kind),
+                format!("expected {expected}, found {found}"),
             ))
         }
     }
@@ -1668,7 +1665,11 @@ impl Parser {
     }
 
     fn expect_stmt_end(&mut self) -> ParseResult<()> {
-        self.expect(&TokenKind::StmtEnd)
+        if self.check(&TokenKind::StmtEnd) {
+            self.bump();
+            return Ok(());
+        }
+        Err(self.stmt_end_error())
     }
 
     /// After `name = User(), ... ..` the block close ends the statement (no extra `.`).
@@ -1679,15 +1680,71 @@ impl Parser {
         if matches!(expr, Expr::Object { fields: Some(_), .. }) {
             return Ok(());
         }
-        Err(ParseError::new(
-            ParseErrorKind::MissingStatementEnd,
-            self.current_span(),
-            "expected `.` at end of statement",
-        ))
+        Err(self.stmt_end_error())
+    }
+
+    fn stmt_end_error(&self) -> ParseError {
+        let span = self.current_span();
+        let message = match self.peek_kind() {
+            Some(TokenKind::BlockClose) => {
+                "this line should end with `.`, not `..`\n  \
+                 help: use `.` to end a statement inside a block; use `..` only on the dedented line to close the block"
+                    .into()
+            }
+            Some(TokenKind::Newline) | None => {
+                "every statement must end with `.`\n  \
+                 help: add a period at the end of this line"
+                    .into()
+            }
+            Some(found) => format!(
+                "every statement must end with `.`, found {}\n  \
+                 help: add `.` at the end of this line",
+                crate::error::token_label(&found)
+            ),
+        };
+        ParseError::new(ParseErrorKind::MissingStatementEnd, span, message)
+    }
+
+    fn block_close_error(&self) -> ParseError {
+        let span = self.current_span();
+        let message = match self.peek_kind() {
+            Some(TokenKind::StmtEnd) => {
+                // Common typos: `.` or `.,.` instead of `..`
+                "this block must close with `..`, not `.`\n  \
+                 help: replace `.` with `..` on this line (e.g. `function greet(name),` … `..`)"
+                    .into()
+            }
+            Some(TokenKind::Comma) => {
+                "this block must close with `..`\n  \
+                 help: put `..` alone on this dedented line — remove the extra `,`"
+                    .into()
+            }
+            Some(TokenKind::DotDot) => {
+                "put `..` at the beginning of this line to close the block\n  \
+                 help: remove any `.` or `,` before `..`"
+                    .into()
+            }
+            Some(TokenKind::Newline) | None => {
+                "this block is not closed\n  \
+                 help: add `..` on a dedented line after the block body"
+                    .into()
+            }
+            Some(found) => format!(
+                "this block must close with `..`, found {}\n  \
+                 help: add `..` on a dedented line to close the block",
+                crate::error::token_label(&found)
+            ),
+        };
+        ParseError::new(ParseErrorKind::MissingBlockClose, span, message)
     }
 
     fn expect_block_close(&mut self) -> ParseResult<()> {
-        self.expect(&TokenKind::BlockClose)
+        if self.check(&TokenKind::BlockClose) {
+            self.bump();
+            Ok(())
+        } else {
+            Err(self.block_close_error())
+        }
     }
 
     fn skip_newlines(&mut self) {

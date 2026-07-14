@@ -268,7 +268,10 @@ impl Checker {
                     self.error(
                         DiagnosticKind::UndefinedName,
                         *span,
-                        format!("undefined name '{name}'"),
+                        format!(
+                            "'{name}' is used before it is defined\n  \
+                             help: assign it first (e.g. {name} = ...) or check the spelling"
+                        ),
                     );
                 }
             }
