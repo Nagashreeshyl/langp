@@ -15,3 +15,9 @@ repeat 5 times as i,
 ..
 
 print "Loop ran successfully!".
+i = 5.
+while i > 0,
+    print "Hello".
+    i = i - 1.
+..
+print "Loop ran successfully!".

@@ -2,7 +2,7 @@
   "name": "langp-langp",
   "displayName": "Lang.P",
   "description": "Lang.P language support — syntax highlighting, icon, autocomplete, diagnostics, hover, and go-to-definition",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "Nagashreeshyl",
   "license": "MIT",
   "icon": "icons/langp.png",
@@ -52,8 +52,8 @@
       "properties": {
         "langp.languageServerPath": {
           "type": "string",
-          "default": "lang-lsp",
-          "description": "Path to the lang-lsp language server binary (installed by the Lang.P install script)"
+          "default": "",
+          "description": "Path to lang-lsp binary. Leave empty to auto-detect ~/.local/bin/lang-lsp"
         },
         "langp.enableLanguageServer": {
           "type": "boolean",
@@ -91,7 +91,8 @@
         "editor.tabSize": 4,
         "editor.insertSpaces": true,
         "editor.autoIndent": "full",
-        "editor.formatOnType": false,
+        "editor.renderValidationDecorations": "on",
+        "editor.glyphMargin": true,
         "editor.suggest.snippetsPreventQuickSuggestions": false,
         "editor.quickSuggestions": {
           "other": "on",

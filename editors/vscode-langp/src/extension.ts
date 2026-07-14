@@ -11,6 +11,8 @@ import {
 
 let client: LanguageClient | undefined;
 
+const DEFAULT_LSP = path.join(os.homedir(), ".local", "bin", "lang-lsp");
+
 const COLOR_RULES = [
   { scope: "comment.line.number-sign.langp", foreground: "#6A9955", fontStyle: "italic" },
   { scope: "string.quoted.double.langp", foreground: "#CE9178" },
@@ -37,10 +39,9 @@ function resolveLangLsp(configured: string): string {
   if (configured.includes("/") || configured.includes("\\") || path.isAbsolute(configured)) {
     return configured;
   }
-  const home = os.homedir();
   const candidates = [
-    path.join(home, ".local", "bin", configured),
-    path.join(home, ".cargo", "bin", configured),
+    DEFAULT_LSP,
+    path.join(os.homedir(), ".cargo", "bin", configured),
   ];
   if (process.env.PATH) {
     for (const dir of process.env.PATH.split(path.delimiter)) {
@@ -50,7 +51,7 @@ function resolveLangLsp(configured: string): string {
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;
   }
-  return configured;
+  return DEFAULT_LSP;
 }
 
 function applyLangpColors(): void {
@@ -74,34 +75,47 @@ function applyLangpColors(): void {
   );
 }
 
+function applyEditorDefaults(): void {
+  const config = vscode.workspace.getConfiguration();
+  void config.update("files.associations", { "*.lp": "langp" }, vscode.ConfigurationTarget.Global);
+
+  const langpEditor = vscode.workspace.getConfiguration("[langp]");
+  const updates: [string, unknown][] = [
+    ["editor.renderValidationDecorations", "on"],
+    ["editor.showUnused", true],
+    ["editor.glyphMargin", true],
+  ];
+  for (const [key, val] of updates) {
+    if (langpEditor.get(key) === undefined) {
+      void langpEditor.update(key, val, vscode.ConfigurationTarget.Global);
+    }
+  }
+}
+
 async function ensureLangpLanguage(doc: vscode.TextDocument): Promise<void> {
   if (doc.fileName.endsWith(".lp") && doc.languageId !== "langp") {
     await vscode.languages.setTextDocumentLanguage(doc, "langp");
   }
 }
 
-export function activate(context: vscode.ExtensionContext): void {
-  applyLangpColors();
-
-  const config = vscode.workspace.getConfiguration();
-  void config.update(
-    "files.associations",
-    { ...(config.get("files.associations") ?? {}), "*.lp": "langp" },
-    vscode.ConfigurationTarget.Global
-  );
-
+async function activateAllLpFiles(): Promise<void> {
   for (const doc of vscode.workspace.textDocuments) {
-    void ensureLangpLanguage(doc);
+    await ensureLangpLanguage(doc);
   }
+}
 
+function startLanguageServer(context: vscode.ExtensionContext): void {
   const langpConfig = vscode.workspace.getConfiguration("langp");
   if (!langpConfig.get<boolean>("enableLanguageServer", true)) return;
 
-  const serverPath = resolveLangLsp(langpConfig.get<string>("languageServerPath", "lang-lsp"));
+  const raw = langpConfig.get<string>("languageServerPath", "").trim();
+  const serverPath = resolveLangLsp(raw || "lang-lsp");
+
   if (!fs.existsSync(serverPath)) {
     void vscode.window.showWarningMessage(
-      "Lang.P: lang-lsp not found. Run: curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/install.sh | sh"
+      `Lang.P: lang-lsp not found at ${serverPath}. Run the install script.`
     );
+    return;
   }
 
   const serverOptions: ServerOptions = {
@@ -110,21 +124,32 @@ export function activate(context: vscode.ExtensionContext): void {
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "file", language: "langp" }],
+    documentSelector: [
+      { scheme: "file", language: "langp" },
+      { scheme: "file", pattern: "**/*.lp" },
+    ],
     synchronize: { fileEvents: vscode.workspace.createFileSystemWatcher("**/*.lp") },
+    outputChannelName: "Lang.P Language Server",
   };
 
   client = new LanguageClient("langp", "Lang.P Language Server", serverOptions, clientOptions);
 
+  void client.start();
+}
+
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  applyLangpColors();
+  applyEditorDefaults();
+  await activateAllLpFiles();
+
   context.subscriptions.push(
-    { dispose: () => deactivate() },
     vscode.workspace.onDidOpenTextDocument((doc) => void ensureLangpLanguage(doc)),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) void ensureLangpLanguage(editor.document);
     })
   );
 
-  void client.start();
+  startLanguageServer(context);
 }
 
 export async function deactivate(): Promise<void> {

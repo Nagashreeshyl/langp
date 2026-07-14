@@ -1,19 +1,12 @@
 {
-  "files.associations": {
-    "*.lp": "langp"
-  },
+  "files.associations": { "*.lp": "langp" },
   "[langp]": {
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
     "editor.autoIndent": "full",
-    "editor.quickSuggestions": {
-      "other": "on",
-      "comments": "off",
-      "strings": "on"
-    },
-    "editor.suggest.showSnippets": true,
-    "editor.wordBasedSuggestions": "off"
+    "editor.renderValidationDecorations": "on",
+    "editor.quickSuggestions": { "other": "on", "comments": "off", "strings": "on" }
   },
-  "langp.languageServerPath": "lang-lsp",
+  "langp.languageServerPath": "/Users/mymacbook/.local/bin/lang-lsp",
   "langp.enableLanguageServer": true
 }

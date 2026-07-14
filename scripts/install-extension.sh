@@ -3,7 +3,7 @@
 set -e
 
 REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
-VERSION="${LANGP_EXT_VERSION:-0.1.2}"
+VERSION="${LANGP_EXT_VERSION:-0.1.3}"
 EXT_ID="Nagashreeshyl.langp-langp-${VERSION}"
 
 find_editor_cli() {
