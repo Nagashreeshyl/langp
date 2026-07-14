@@ -1,80 +1,54 @@
 #!/usr/bin/env sh
-# Install Lang.P VS Code / Cursor extension (no `cursor` CLI required)
+# Install Lang.P extensions into Cursor, Antigravity, VS Code (no CLI required).
 set -e
 
-REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
-VERSION="${LANGP_EXT_VERSION:-0.1.3}"
-EXT_ID="Nagashreeshyl.langp-langp-${VERSION}"
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+export LANGP_EXT_VERSION="${LANGP_EXT_VERSION:-0.2.2}"
 
-find_editor_cli() {
-  for bin in \
-    "$HOME/.cursor/bin/cursor" \
-    "/Applications/Cursor.app/Contents/Resources/app/bin/cursor" \
-    "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
-    "$(command -v cursor 2>/dev/null || true)" \
-    "$(command -v code 2>/dev/null || true)"; do
-    [ -n "$bin" ] && [ -x "$bin" ] && { echo "$bin"; return 0; }
-  done
-  return 1
-}
-
-install_unpacked() {
-  src="$1"
-  for ext_root in "$HOME/.cursor/extensions" "$HOME/.vscode/extensions"; do
-    mkdir -p "$ext_root"
-    rm -rf "$ext_root/$EXT_ID" "$ext_root/nagashreeshyl.langp-langp-${VERSION}"
-    cp -R "$src" "$ext_root/$EXT_ID"
-    echo "  ✓ extension → $ext_root/$EXT_ID"
-  done
-}
-
-install_from_vsix() {
-  vsix="$1"
-  tmp="$(mktemp -d)"
-  unzip -q "$vsix" -d "$tmp"
-  for ext_root in "$HOME/.cursor/extensions" "$HOME/.vscode/extensions"; do
-    mkdir -p "$ext_root"
-    rm -rf "$ext_root/$EXT_ID" "$ext_root/nagashreeshyl.langp-langp-${VERSION}"
-    cp -R "$tmp/extension" "$ext_root/$EXT_ID"
-    echo "  ✓ extension → $ext_root/$EXT_ID"
-  done
-  rm -rf "$tmp"
-}
-
-resolve_release_tag() {
-  tag="${LANGP_VERSION:-latest}"
-  if [ "$tag" = "latest" ]; then
-    tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-      | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-      | head -1)" || true
-    [ -n "$tag" ] || tag="v0.1.2"
-  fi
-  echo "$tag"
-}
-
-echo "Installing Lang.P editor extension..."
-
-RELEASE_TAG="$(resolve_release_tag)"
-VSIX_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/langp-langp-${VERSION}.vsix"
-VSIX_TMP="$(mktemp).vsix"
-
-if CLI="$(find_editor_cli)"; then
-  if curl -fsSL "$VSIX_URL" -o "$VSIX_TMP" 2>/dev/null; then
-    if "$CLI" --install-extension "$VSIX_TMP" --force 2>/dev/null; then
-      rm -f "$VSIX_TMP"
-      echo "  ✓ installed via $CLI"
-      exit 0
-    fi
-  fi
-fi
-
-if curl -fsSL "$VSIX_URL" -o "$VSIX_TMP" 2>/dev/null; then
-  install_from_vsix "$VSIX_TMP"
-  rm -f "$VSIX_TMP"
-  echo "  ✓ extension installed (no CLI needed)"
+if [ -d "$ROOT/editors/langp-grammar" ]; then
+  sh "$ROOT/scripts/install-ide-extensions.sh"
   exit 0
 fi
-rm -f "$VSIX_TMP"
 
-echo "  ⚠ Could not download VSIX from $VSIX_URL"
-exit 0
+# Fallback when run from curl|sh without full repo — download release VSIX
+REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
+VERSION="${LANGP_EXT_VERSION}"
+RELEASE_TAG="${LANGP_VERSION:-latest}"
+
+if [ "$RELEASE_TAG" = "latest" ]; then
+  RELEASE_TAG="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+    | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+    | head -1)" || true
+  [ -n "$RELEASE_TAG" ] || RELEASE_TAG="v0.2.1"
+fi
+
+VSIX_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/langp-${VERSION}.vsix"
+VSIX_TMP="$(mktemp).vsix"
+
+echo "Installing Lang.P editor extension from release..."
+if ! curl -fsSL "$VSIX_URL" -o "$VSIX_TMP" 2>/dev/null; then
+  echo "  ⚠ Could not download $VSIX_URL"
+  exit 0
+fi
+
+tmp="$(mktemp -d)"
+unzip -q "$VSIX_TMP" -d "$tmp"
+EXT_ID="Nagashreeshyl.langp-${VERSION}"
+
+for ext_root in \
+  "$HOME/.cursor/extensions" \
+  "$HOME/.vscode/extensions" \
+  "$HOME/.antigravity/extensions" \
+  "$HOME/.antigravity-ide/extensions"; do
+  parent="$(dirname "$ext_root")"
+  if [ -d "$parent" ] || [ "$ext_root" = "$HOME/.cursor/extensions" ]; then
+    mkdir -p "$ext_root"
+    rm -rf "$ext_root/$EXT_ID"
+    cp -R "$tmp/extension" "$ext_root/$EXT_ID"
+    rm -f "$ext_root/extensions.json"
+    echo "  ✓ → $ext_root/$EXT_ID"
+  fi
+done
+
+rm -rf "$tmp" "$VSIX_TMP"
+echo "  ✓ extension installed — restart your IDE"

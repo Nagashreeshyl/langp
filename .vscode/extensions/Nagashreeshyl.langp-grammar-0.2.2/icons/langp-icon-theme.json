@@ -1,0 +1,11 @@
+{
+  "iconDefinitions": {
+    "_langp_file": {
+      "iconPath": "./langp.svg"
+    }
+  },
+  "fileExtensions": {
+    "lp": "_langp_file"
+  },
+  "fileNames": {}
+}

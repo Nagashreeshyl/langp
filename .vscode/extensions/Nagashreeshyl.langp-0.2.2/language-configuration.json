@@ -1,0 +1,59 @@
+{
+  "comments": {
+    "lineComment": "@"
+  },
+  "brackets": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"]
+  ],
+  "autoClosingPairs": [
+    { "open": "(", "close": ")" },
+    { "open": "[", "close": "]" },
+    { "open": "\"", "close": "\"", "notIn": ["string"] },
+    { "open": "'", "close": "'", "notIn": ["string", "comment"] }
+  ],
+  "surroundingPairs": [
+    ["(", ")"],
+    ["[", "]"],
+    ["\"", "\""],
+    ["'", "'"]
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": ",\\s*$",
+    "decreaseIndentPattern": "^\\s*(\\.\\.?|\\.)\\s*$"
+  },
+  "onEnterRules": [
+    {
+      "beforeText": ",\\s*$",
+      "action": {
+        "indent": "indent"
+      }
+    },
+    {
+      "beforeText": "^\\s*\\.\\.\\s*$",
+      "action": {
+        "indent": "outdent"
+      }
+    },
+    {
+      "beforeText": "^\\s*\\.\\s*$",
+      "action": {
+        "indent": "outdent"
+      }
+    },
+    {
+      "previousLineText": ",\\s*$",
+      "beforeText": "^\\s*$",
+      "action": {
+        "indent": "indent"
+      }
+    }
+  ],
+  "folding": {
+    "markers": {
+      "start": ",\\s*$",
+      "end": "^\\s*\\.\\.\\s*$"
+    }
+  }
+}

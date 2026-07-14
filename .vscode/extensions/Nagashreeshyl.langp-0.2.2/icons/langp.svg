@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="24" fill="#1B3A4B"/>
+  <rect x="8" y="8" width="112" height="112" rx="20" fill="#2E6F95"/>
+  <text x="64" y="82" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="56" font-weight="700" fill="#E8F4FC">P</text>
+  <circle cx="98" cy="30" r="10" fill="#7DD3FC"/>
+  <text x="64" y="112" text-anchor="middle" font-family="monospace" font-size="14" fill="#A5D8F5">.lp</text>
+</svg>

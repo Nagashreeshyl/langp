@@ -4,8 +4,7 @@
 set -e
 
 INSTALL_DIR="${LANGP_INSTALL_DIR:-$HOME/.local/bin}"
-EXT_VERSION="${LANGP_EXT_VERSION:-0.1.2}"
-EXT_ID="Nagashreeshyl.langp-langp-${EXT_VERSION}"
+VERSION="${LANGP_EXT_VERSION:-0.2.2}"
 
 echo "Lang.P uninstaller"
 echo ""
@@ -20,14 +19,19 @@ for bin in lang langc lang-lsp; do
   fi
 done
 
-for ext_root in "$HOME/.cursor/extensions" "$HOME/.vscode/extensions"; do
-  for dir in "$ext_root/$EXT_ID" "$ext_root/nagashreeshyl.langp-langp-0.1.0" "$ext_root/nagashreeshyl.langp-langp-0.1.1"; do
-    if [ -d "$dir" ]; then
-      rm -rf "$dir"
-      echo "  ✓ removed extension $dir"
-      removed=1
-    fi
+for ext_root in \
+  "$HOME/.cursor/extensions" \
+  "$HOME/.vscode/extensions" \
+  "$HOME/.antigravity/extensions" \
+  "$HOME/.antigravity-ide/extensions"; do
+  [ -d "$ext_root" ] || continue
+  for dir in "$ext_root"/[Nn]agashreeshyl.langp*; do
+    [ -d "$dir" ] || continue
+    rm -rf "$dir"
+    echo "  ✓ removed extension $dir"
+    removed=1
   done
+  rm -f "$ext_root/extensions.json"
 done
 
 if [ "$removed" = "0" ]; then
@@ -35,5 +39,5 @@ if [ "$removed" = "0" ]; then
 else
   echo ""
   echo "✓ Lang.P uninstalled."
-  echo "  Reload Cursor/VS Code to complete removal."
+  echo "  Fully quit and reopen your IDE to complete removal."
 fi

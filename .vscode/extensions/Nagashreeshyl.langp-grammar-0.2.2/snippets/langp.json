@@ -1,0 +1,48 @@
+{
+  "function": {
+    "prefix": "function",
+    "body": ["function ${1:name}(${2:params}),", "\t${3:pass}.", "."],
+    "description": "Function declaration"
+  },
+  "if block": {
+    "prefix": "if",
+    "body": ["if ${1:condition},", "\t${2:pass}", ".."],
+    "description": "If statement with block"
+  },
+  "type": {
+    "prefix": "type",
+    "body": ["type ${1:Name},", "\t${2:field}: ${3:String}.", "."],
+    "description": "Type declaration"
+  },
+  "for": {
+    "prefix": "for",
+    "body": ["for ${1:item} in ${2:items},", "\t${3:pass}", ".."],
+    "description": "For loop"
+  },
+  "repeat": {
+    "prefix": "repeat",
+    "body": ["repeat ${1:5} times,", "\t${2:pass}", ".."],
+    "description": "Repeat loop"
+  },
+  "try": {
+    "prefix": "try",
+    "body": [
+      "try,",
+      "\t${1:pass}.",
+      "catch ${2:error},",
+      "\t${3:print} ${2:error}.",
+      ".."
+    ],
+    "description": "Try/catch block"
+  },
+  "input text": {
+    "prefix": "input",
+    "body": "input ${1|text,number,decimal,boolean,password|} \"${2:prompt}\"",
+    "description": "Input expression"
+  },
+  "print": {
+    "prefix": "print",
+    "body": "print ${1:\"message\"}.",
+    "description": "Print statement"
+  }
+}

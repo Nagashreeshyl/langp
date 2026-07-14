@@ -43,14 +43,27 @@ irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall
 
 **Start here:** [How to Code in Lang.P](docs/guides/HOW-TO-CODE.md) — complete beginner guide with loops, functions, conditionals, and Python comparisons.
 
-## IDE support (Cursor / VS Code)
+## IDE support (Cursor, Antigravity, VS Code, Windsurf)
 
-The install script sets up everything automatically — no `cursor` CLI needed:
+The install script sets up everything automatically — **no `cursor` CLI** (it segfaults on some Macs):
 
-- `.lp` file icon in the explorer
-- Syntax highlighting and snippets
+- `.lp` treated as **Lang.P** (not Plain Text)
+- File icon in the explorer
+- Syntax highlighting (colors) and snippets
 - **Auto-indent** after `,` and **de-indent** on `..`
-- Autocomplete, error squiggles, hover, go-to-definition (via `lang-lsp`)
+- Built-in autocomplete (keywords + snippets)
+- Error/warning squiggles via `lang check`
+- Full LSP autocomplete when `lang-lsp` is installed
+
+If colors or autocomplete still don't work after install:
+
+```bash
+./scripts/fix-ide.sh    # from a cloned repo — installs to all IDEs
+```
+
+**Autocomplete:** Lang.P uses standard IntelliSense (like PyCharm/Python) — a popup list with function signatures. The large AI code blocks in Antigravity are *not* Lang.P suggestions. For `.lp` files we disable AI inline suggestions; use **Ctrl+Space** for Lang.P completions. In Antigravity you can also turn off **Suggestions in Editor** (bottom-right → Antigravity Settings).
+
+Then **fully quit** your IDE (Cmd+Q) and reopen a `.lp` file in the **editor tab** (not the AI chat panel). Bottom-right should say **Lang.P**.
 
 If you cloned the repo locally instead:
 

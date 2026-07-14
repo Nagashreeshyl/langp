@@ -1,0 +1,81 @@
+{
+  "name": "langp-grammar",
+  "displayName": "Lang.P Grammar",
+  "description": "Lang.P syntax colors, file icon, snippets, and auto-indent — works in all VS Code-based IDEs",
+  "version": "0.2.2",
+  "publisher": "Nagashreeshyl",
+  "license": "MIT",
+  "icon": "icons/langp.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nagashreeshyl/langp"
+  },
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": ["Programming Languages"],
+  "keywords": ["langp", "lang.p", "lang", "lp"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "langp",
+        "aliases": ["Lang.P", "LangP", "langp"],
+        "extensions": [".lp"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/langp.svg",
+          "dark": "./icons/langp.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "langp",
+        "scopeName": "source.langp",
+        "path": "./syntaxes/langp.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "langp",
+        "path": "./snippets/langp.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "langp-icons",
+        "label": "Lang.P File Icons",
+        "path": "./icons/langp-icon-theme.json"
+      }
+    ],
+    "configurationDefaults": {
+      "files.associations": {
+        "*.lp": "langp"
+      },
+      "[langp]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.autoIndent": "full",
+        "editor.renderValidationDecorations": "on",
+        "editor.inlineSuggest.enabled": false,
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.quickSuggestions": {
+          "other": "on",
+          "comments": "off",
+          "strings": "on"
+        },
+        "editor.suggest.preview": true,
+        "editor.suggest.showSnippets": true,
+        "editor.suggest.showKeywords": true,
+        "editor.suggest.showFunctions": true,
+        "editor.suggest.localityBonus": true,
+        "editor.parameterHints.enabled": true,
+        "editor.wordBasedSuggestions": "off",
+        "github.copilot.enable": {
+          "*": true,
+          "langp": false
+        }
+      }
+    }
+  }
+}
