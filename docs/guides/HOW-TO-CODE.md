@@ -31,7 +31,7 @@ Lang.P reads like English sentences. Three punctuation rules govern everything:
 |--------|------|---------|
 | **`.`** | Statement end | Every instruction ends with a period (like a sentence) |
 | **`,`** | Block open | After `if`, `repeat`, `function`, etc. — next lines are indented |
-| **`..`** | Block close | Ends an indented block (like `end` or `}`) |
+| **`..`** | Block close | Ends an indented block (like `}` in other languages) |
 
 ```lp
 @ This is a comment — starts with @

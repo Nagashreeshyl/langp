@@ -4,6 +4,7 @@
   "fileTypes": ["lp"],
   "patterns": [
     { "include": "#comments" },
+    { "include": "#invalid-keywords" },
     { "include": "#strings" },
     { "include": "#numbers" },
     { "include": "#keywords-compound" },
@@ -26,6 +27,14 @@
         {
           "name": "comment.line",
           "match": "@.*$"
+        }
+      ]
+    },
+    "invalid-keywords": {
+      "patterns": [
+        {
+          "name": "invalid.illegal",
+          "match": "^\\s*end\\.?\\s*$"
         }
       ]
     },
@@ -65,7 +74,7 @@
       "patterns": [
         {
           "name": "keyword.control",
-          "match": "\\b(if|otherwise|else|repeat|forever|for|while|try|catch|finally|break|continue|return|on|match|await|async|times|end)\\b"
+          "match": "\\b(if|otherwise|else|repeat|forever|for|while|try|catch|finally|break|continue|return|on|match|await|async|times)\\b"
         }
       ]
     },

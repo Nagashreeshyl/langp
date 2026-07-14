@@ -1,11 +1,9 @@
 use langp_ast::{FunctionDecl, ModuleItem, Program};
 use langp_parser::parse;
-use langp_semantic::{analyze, Diagnostic as SemanticDiagnostic, Severity};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::Diagnostic as LspDiagnostic;
 use tower_lsp::lsp_types::*;
 use tower_lsp::Client;
 
@@ -24,36 +22,9 @@ impl LangpServer {
         }
     }
 
-    async fn publish_diagnostics(&self, uri: &Url) {
-        let docs = self.documents.read().await;
-        let Some(text) = docs.get(uri.as_str()) else {
-            return;
-        };
-
-        let mut diagnostics = Vec::new();
-
-        match parse(text) {
-            Ok(program) => {
-                let result = analyze(&program);
-                for d in result.diagnostics {
-                    diagnostics.push(to_lsp_diagnostic(&d));
-                }
-            }
-            Err(e) => {
-                diagnostics.push(LspDiagnostic {
-                    range: span_to_range(text, e.span.start, e.span.end),
-                    severity: Some(DiagnosticSeverity::ERROR),
-                    code: Some(NumberOrString::String("E0200".into())),
-                    source: Some("langp".into()),
-                    message: e.message,
-                    ..Default::default()
-                });
-            }
-        }
-
-        self.client
-            .publish_diagnostics(uri.clone(), diagnostics, None)
-            .await;
+    async fn publish_diagnostics(&self, _uri: &Url) {
+        // Diagnostics are provided by the IDE extension via `lang check`
+        // (single source of truth, friendly help lines, no stale LSP underlines).
     }
 
     fn analyze_document(text: &str) -> Option<Program> {
@@ -272,30 +243,6 @@ impl tower_lsp::LanguageServer for LangpServer {
     }
 }
 
-fn to_lsp_diagnostic(d: &SemanticDiagnostic) -> LspDiagnostic {
-    LspDiagnostic {
-        range: Range {
-            start: Position {
-                line: d.span.line.saturating_sub(1),
-                character: d.span.column.saturating_sub(1),
-            },
-            end: Position {
-                line: d.span.line.saturating_sub(1),
-                character: d.span.column.saturating_sub(1) + 1,
-            },
-        },
-        severity: Some(match d.severity {
-            Severity::Error => DiagnosticSeverity::ERROR,
-            Severity::Warning => DiagnosticSeverity::WARNING,
-            Severity::Info => DiagnosticSeverity::INFORMATION,
-        }),
-        code: Some(NumberOrString::String(d.code().into())),
-        source: Some("langp".into()),
-        message: d.message.clone(),
-        ..Default::default()
-    }
-}
-
 fn span_to_range(source: &str, start: usize, end: usize) -> Range {
     let start_pos = offset_to_position(source, start);
     let end_pos = offset_to_position(source, end);
@@ -350,7 +297,7 @@ fn is_ident_part(c: char) -> bool {
 }
 
 const KEYWORD_DOCS: &[(&str, &str)] = &[
-    ("function", "Define a function. Body opens with `,` and closes with `.`"),
+    ("function", "Define a function. Body opens with `,` and closes with `..`"),
     ("if", "Conditional — use `otherwise if` / `otherwise` for else branches"),
     ("repeat", "`repeat N times,` or `repeat forever,`"),
     ("for", "`for item in collection,` loop"),

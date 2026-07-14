@@ -4,6 +4,8 @@ import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import {
+  CloseAction,
+  ErrorAction,
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
@@ -111,21 +113,43 @@ function parseDiagnostics(text: string, doc: vscode.TextDocument): vscode.Diagno
   return diags;
 }
 
+/** Lang.P never uses `end` / `end.` — blocks close with `..` only. */
+function forbiddenSyntaxDiags(doc: vscode.TextDocument): vscode.Diagnostic[] {
+  const diags: vscode.Diagnostic[] = [];
+  for (let i = 0; i < doc.lineCount; i++) {
+    const line = doc.lineAt(i).text;
+    const m = line.match(/^(\s*)end(\.)?\s*$/);
+    if (!m) continue;
+    const start = m[1].length;
+    const endCol = start + 3 + (m[2] ? 1 : 0);
+    diags.push({
+      range: new vscode.Range(i, start, i, endCol),
+      message:
+        "Lang.P does not use `end`. Close blocks with `..` on its own line.\nhelp: replace `end.` with `..`",
+      severity: vscode.DiagnosticSeverity.Error,
+      source: "langp",
+      code: "E0210",
+    });
+  }
+  return diags;
+}
+
 function runCheck(doc: vscode.TextDocument): void {
   if (doc.languageId !== "langp" && !doc.fileName.endsWith(".lp")) return;
+  const forbidden = forbiddenSyntaxDiags(doc);
   const lang = binPath("lang");
-  if (!fs.existsSync(lang)) return;
+  if (!fs.existsSync(lang)) {
+    diagnosticCollection.set(doc.uri, forbidden);
+    return;
+  }
   const tmp = path.join(os.tmpdir(), `langp-check-${Date.now()}.lp`);
   try {
     fs.writeFileSync(tmp, doc.getText());
     const result = cp.spawnSync(lang, ["check", tmp], { encoding: "utf8" });
     const combined = `${result.stdout}\n${result.stderr}`;
     const hasDiags = /^(error|warning)\[/m.test(combined);
-    if (!hasDiags) {
-      diagnosticCollection.set(doc.uri, []);
-      return;
-    }
-    diagnosticCollection.set(doc.uri, parseDiagnostics(combined, doc));
+    const langDiags = hasDiags ? parseDiagnostics(combined, doc) : [];
+    diagnosticCollection.set(doc.uri, [...forbidden, ...langDiags]);
   } catch (e) {
     output.appendLine(`check failed: ${e}`);
   } finally {
@@ -280,6 +304,36 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
           new vscode.MarkdownString(`**${entry.name}**\n\n\`${entry.signature}\`\n\n${entry.doc}`)
         );
       },
+    }),
+
+    vscode.languages.registerCodeActionsProvider(selector, {
+      provideCodeActions(doc, _range, context) {
+        const actions: vscode.CodeAction[] = [];
+        for (const diag of context.diagnostics) {
+          if (diag.source !== "langp") continue;
+          if (diag.code === "E0210") {
+            const fix = new vscode.CodeAction(
+              "Replace with .. (block close)",
+              vscode.CodeActionKind.QuickFix
+            );
+            fix.diagnostics = [diag];
+            fix.edit = new vscode.WorkspaceEdit();
+            fix.edit.replace(doc.uri, diag.range, "..");
+            actions.push(fix);
+          }
+          if (diag.code === "E0201" && diag.message.includes("not `.`")) {
+            const fix = new vscode.CodeAction(
+              "Replace . with .. (block close)",
+              vscode.CodeActionKind.QuickFix
+            );
+            fix.diagnostics = [diag];
+            fix.edit = new vscode.WorkspaceEdit();
+            fix.edit.replace(doc.uri, diag.range, "..");
+            actions.push(fix);
+          }
+        }
+        return actions.length ? actions : undefined;
+      },
     })
   );
 }
@@ -304,6 +358,18 @@ function startLanguageServer(): void {
     documentSelector: [{ scheme: "file", language: "langp", pattern: "**/*.lp" }],
     synchronize: { fileEvents: vscode.workspace.createFileSystemWatcher("**/*.lp") },
     outputChannel: output,
+    middleware: {
+      handleDiagnostics: () => {
+        /* extension runCheck() is the single diagnostic source */
+      },
+    },
+    errorHandler: {
+      error: () => {
+        output.appendLine("lang-lsp error — LSP disabled for this session");
+        return { action: ErrorAction.Shutdown };
+      },
+      closed: () => ({ action: CloseAction.DoNotRestart }),
+    },
   };
 
   client = new LanguageClient("langp-lsp", "Lang.P LSP", serverOptions, clientOptions);
@@ -326,6 +392,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   for (const doc of vscode.workspace.textDocuments) {
     await forceLangpLanguage(doc);
+    if (doc.fileName.endsWith(".lp")) {
+      runCheck(doc);
+    }
   }
 
   context.subscriptions.push(
@@ -334,6 +403,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     status,
     vscode.workspace.onDidOpenTextDocument(async (doc) => {
       await forceLangpLanguage(doc);
+      if (doc.fileName.endsWith(".lp")) {
+        runCheck(doc);
+      }
     }),
     vscode.workspace.onDidSaveTextDocument((doc) => {
       if (!doc.fileName.endsWith(".lp")) return;

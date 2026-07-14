@@ -2,7 +2,7 @@
   "name": "langp",
   "displayName": "Lang.P Services",
   "description": "Lang.P — error underlines, autocomplete, LSP, run command",
-  "version": "0.2.5",
+  "version": "0.2.8",
   "publisher": "Nagashreeshyl",
   "license": "MIT",
   "icon": "icons/langp.png",
@@ -43,8 +43,8 @@
         },
         "langp.enableLanguageServer": {
           "type": "boolean",
-          "default": true,
-          "description": "Enable lang-lsp for autocomplete and go-to-definition"
+          "default": false,
+          "description": "Enable lang-lsp (optional — hover/go-to-definition). Diagnostics and autocomplete work without it."
         },
         "langp.checkOnType": {
           "type": "boolean",

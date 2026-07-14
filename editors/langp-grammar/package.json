@@ -2,7 +2,7 @@
   "name": "langp-grammar",
   "displayName": "Lang.P Grammar",
   "description": "Lang.P syntax colors, file icon, snippets, and auto-indent — works in all VS Code-based IDEs",
-  "version": "0.2.5",
+  "version": "0.2.8",
   "publisher": "Nagashreeshyl",
   "license": "MIT",
   "icon": "icons/langp.png",

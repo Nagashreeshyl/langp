@@ -1,7 +1,7 @@
 {
   "function": {
     "prefix": "function",
-    "body": ["function ${1:name}(${2:params}),", "\t${3:pass}.", "."],
+    "body": ["function ${1:name}(${2:params}),", "\t${3:pass}.", ".."],
     "description": "Function declaration"
   },
   "if block": {
@@ -11,7 +11,7 @@
   },
   "type": {
     "prefix": "type",
-    "body": ["type ${1:Name},", "\t${2:field}: ${3:String}.", "."],
+    "body": ["type ${1:Name},", "\t${2:field}: ${3:String}.", ".."],
     "description": "Type declaration"
   },
   "for": {
