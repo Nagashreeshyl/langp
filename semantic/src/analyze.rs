@@ -44,11 +44,6 @@ impl Checker {
             .push(Diagnostic::error(kind, span, message));
     }
 
-    fn warn(&mut self, kind: DiagnosticKind, span: Span, message: impl Into<String>) {
-        self.diagnostics
-            .push(Diagnostic::warning(kind, span, message));
-    }
-
     fn check_program(&mut self, program: &Program) {
         for item in &program.items {
             self.collect_item(item);
@@ -250,29 +245,14 @@ impl Checker {
 
     fn check_assign_target(&mut self, target: &AssignTarget, locals: &HashSet<String>) {
         match target {
-            AssignTarget::Name(name, span) => {
-                if !locals.contains(name) && !self.globals.contains(name) && !self.is_builtin(name)
-                {
-                    self.warn(
-                        DiagnosticKind::UndefinedName,
-                        *span,
-                        format!("'{name}' may be undefined"),
-                    );
-                }
+            AssignTarget::Name(_, _) => {
+                // Assignment defines the name; no "may be undefined" check on the target.
             }
             AssignTarget::Member { object, .. } | AssignTarget::Index { object, .. } => {
                 self.check_expr(object, locals);
             }
-            AssignTarget::Tuple(names, span) => {
-                for n in names {
-                    if !locals.contains(n) && !self.globals.contains(n) {
-                        self.warn(
-                            DiagnosticKind::UndefinedName,
-                            *span,
-                            format!("'{n}' may be undefined"),
-                        );
-                    }
-                }
+            AssignTarget::Tuple(_, _) => {
+                // Tuple unpacking defines each name.
             }
         }
     }
@@ -394,13 +374,16 @@ mod tests {
     use langp_parser::parse;
 
     #[test]
-    fn analyze_hello_ok() {
-        let source = r#"function greet(name),
-    print "Hello " with name.
-.
-greet("World")."#;
+    fn analyze_input_assign_no_false_warnings() {
+        let source = r#"name = input text "Enter Your Name : ".
+age = input number "Enter Your Age : ".
+print "Hey " with name."#;
         let program = parse(source).unwrap();
         let result = analyze(&program);
-        assert!(result.is_ok(), "{:?}", result.diagnostics);
+        assert!(
+            result.diagnostics.is_empty(),
+            "expected no diagnostics, got {:?}",
+            result.diagnostics
+        );
     }
 }
