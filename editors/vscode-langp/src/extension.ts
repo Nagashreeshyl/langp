@@ -80,7 +80,7 @@ function parseDiagnostics(text: string, doc: vscode.TextDocument): vscode.Diagno
       }
       const docLine = doc.lineAt(Math.min(lineNum, doc.lineCount - 1));
       const start = Math.min(col, docLine.text.length);
-      const end = Math.min(start + 1, docLine.text.length);
+      const end = docLine.text.length;
       diags.push({
         range: new vscode.Range(lineNum, start, lineNum, Math.max(end, start + 1)),
         message,
@@ -103,7 +103,8 @@ function runCheck(doc: vscode.TextDocument): void {
     fs.writeFileSync(tmp, doc.getText());
     const result = cp.spawnSync(lang, ["check", tmp], { encoding: "utf8" });
     const combined = `${result.stdout}\n${result.stderr}`;
-    if (result.status === 0 && !combined.includes("error[")) {
+    const hasDiags = /^(error|warning)\[/m.test(combined);
+    if (!hasDiags) {
       diagnosticCollection.set(doc.uri, []);
       return;
     }

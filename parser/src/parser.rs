@@ -288,9 +288,7 @@ impl Parser {
         }
 
         let expr = self.parse_expr()?;
-        if self.check_stmt_end() {
-            self.expect_stmt_end()?;
-        }
+        self.expect_stmt_end()?;
         Ok(Stmt::Expr {
             span: span_between(start, self.previous_span()),
             expr,
@@ -585,9 +583,7 @@ impl Parser {
         if let Ok(target) = self.parse_assign_target() {
             if let Some(op) = self.parse_assign_op() {
                 let value = self.parse_expr()?;
-                if self.check_stmt_end() {
-                    self.expect_stmt_end()?;
-                }
+                self.expect_stmt_end_after_expr(&value)?;
                 return Ok(Stmt::Assign {
                     target,
                     op,
@@ -598,9 +594,7 @@ impl Parser {
         }
         self.pos = checkpoint;
         let expr = self.parse_expr()?;
-        if self.check_stmt_end() {
-            self.expect_stmt_end()?;
-        }
+        self.expect_stmt_end()?;
         Ok(Stmt::Expr {
             expr,
             span: span_between(start, self.previous_span()),
@@ -1675,6 +1669,21 @@ impl Parser {
 
     fn expect_stmt_end(&mut self) -> ParseResult<()> {
         self.expect(&TokenKind::StmtEnd)
+    }
+
+    /// After `name = User(), ... ..` the block close ends the statement (no extra `.`).
+    fn expect_stmt_end_after_expr(&mut self, expr: &Expr) -> ParseResult<()> {
+        if self.check_stmt_end() {
+            return self.expect_stmt_end();
+        }
+        if matches!(expr, Expr::Object { fields: Some(_), .. }) {
+            return Ok(());
+        }
+        Err(ParseError::new(
+            ParseErrorKind::MissingStatementEnd,
+            self.current_span(),
+            "expected `.` at end of statement",
+        ))
     }
 
     fn expect_block_close(&mut self) -> ParseResult<()> {

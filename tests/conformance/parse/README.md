@@ -34,6 +34,7 @@ Each `.lp` file in `invalid/` MUST produce at least one syntax error:
 
 | File | Expected error |
 |------|----------------|
+| `missing_assign_stmt_end.lp` | Assignment without terminating `.` |
 | `dot_block_close.lp` | Block closed with `.` instead of `..` |
 | `missing_stmt_end.lp` | Statement without terminating `.` |
 | `else_if_instead_of_otherwise.lp` | `else if` is not valid |

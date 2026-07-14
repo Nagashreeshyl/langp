@@ -27,6 +27,13 @@ fn parse_hello_fixture() {
 }
 
 #[test]
+fn invalid_missing_assign_stmt_end_rejected() {
+    let path = fixture_root().join("invalid/missing_assign_stmt_end.lp");
+    let source = fs::read_to_string(&path).unwrap();
+    assert!(parse(&source).is_err(), "assignment without . must be rejected");
+}
+
+#[test]
 fn invalid_dot_block_close_rejected() {
     let path = fixture_root().join("invalid/dot_block_close.lp");
     let source = fs::read_to_string(&path).unwrap();
