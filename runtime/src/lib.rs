@@ -4,4 +4,4 @@ mod error;
 mod value;
 
 pub use error::{RuntimeError, RuntimeErrorKind, RuntimeResult};
-pub use value::{UserFunction, Value};
+pub use value::{set_contains, set_insert, UserFunction, Value};

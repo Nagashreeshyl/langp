@@ -3,5 +3,6 @@
 mod env;
 mod eval;
 mod builtins;
+mod collections;
 
 pub use eval::{run, RunResult};

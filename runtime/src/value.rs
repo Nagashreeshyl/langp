@@ -14,6 +14,8 @@ pub enum Value {
     Null,
     List(Rc<RefCell<Vec<Value>>>),
     Dict(Rc<RefCell<HashMap<String, Value>>>),
+    Set(Rc<RefCell<Vec<Value>>>),
+    Tuple(Rc<Vec<Value>>),
     Function(Rc<UserFunction>),
     NativeFunction(NativeFn),
 }
@@ -43,6 +45,8 @@ impl Value {
             Value::String(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
             Value::Dict(d) => !d.borrow().is_empty(),
+            Value::Set(s) => !s.borrow().is_empty(),
+            Value::Tuple(t) => !t.is_empty(),
             _ => true,
         }
     }
@@ -57,8 +61,21 @@ impl Value {
             Value::Null => "Null",
             Value::List(_) => "List",
             Value::Dict(_) => "Dict",
+            Value::Set(_) => "Set",
+            Value::Tuple(_) => "Tuple",
             Value::Function(_) => "Function",
             Value::NativeFunction(_) => "Function",
+        }
+    }
+
+    pub fn collection_length(&self) -> Option<usize> {
+        match self {
+            Value::List(l) => Some(l.borrow().len()),
+            Value::Dict(d) => Some(d.borrow().len()),
+            Value::Set(s) => Some(s.borrow().len()),
+            Value::Tuple(t) => Some(t.len()),
+            Value::String(s) => Some(s.chars().count()),
+            _ => None,
         }
     }
 }
@@ -84,6 +101,14 @@ impl fmt::Display for Value {
                     .collect();
                 write!(f, "{{{}}}", parts.join(", "))
             }
+            Value::Set(items) => {
+                let parts: Vec<String> = items.borrow().iter().map(|v| v.to_string()).collect();
+                write!(f, "{{{}}}", parts.join(", "))
+            }
+            Value::Tuple(items) => {
+                let parts: Vec<String> = items.iter().map(|v| v.to_string()).collect();
+                write!(f, "({})", parts.join(", "))
+            }
             Value::Function(func) => write!(f, "<function {}>", func.name),
             Value::NativeFunction(_) => write!(f, "<native function>"),
         }
@@ -101,10 +126,32 @@ impl PartialEq for Value {
             (Value::Null, Value::Null) => true,
             (Value::List(a), Value::List(b)) => *a.borrow() == *b.borrow(),
             (Value::Dict(a), Value::Dict(b)) => *a.borrow() == *b.borrow(),
+            (Value::Set(a), Value::Set(b)) => set_eq(a.borrow().as_slice(), b.borrow().as_slice()),
+            (Value::Tuple(a), Value::Tuple(b)) => *a == *b,
             (Value::Int(a), Value::Float(b)) | (Value::Float(b), Value::Int(a)) => {
                 *a as f64 == *b
             }
             _ => false,
         }
+    }
+}
+
+fn set_eq(a: &[Value], b: &[Value]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().all(|v| b.iter().any(|u| v == u))
+}
+
+pub fn set_contains(items: &[Value], item: &Value) -> bool {
+    items.iter().any(|v| v == item)
+}
+
+pub fn set_insert(items: &mut Vec<Value>, item: Value) -> bool {
+    if set_contains(items, &item) {
+        false
+    } else {
+        items.push(item);
+        true
     }
 }

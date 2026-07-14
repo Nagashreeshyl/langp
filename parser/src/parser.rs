@@ -605,7 +605,23 @@ impl Parser {
                 }
                 return Ok(AssignTarget::Tuple(names, start));
             }
-            return self.finish_assign_target(Expr::Ident { name, span: start }, start);
+            let ty = if self.check(&TokenKind::Colon) {
+                self.bump();
+                Some(self.parse_type_expr()?)
+            } else {
+                None
+            };
+            let target = self.finish_assign_target(
+                Expr::Ident {
+                    name: name.clone(),
+                    span: start,
+                },
+                start,
+            )?;
+            return Ok(match target {
+                AssignTarget::Name { name, span, .. } => AssignTarget::Name { name, ty, span },
+                other => other,
+            });
         }
         if self.check_keyword(Keyword::SelfKw) {
             self.bump();
@@ -650,7 +666,11 @@ impl Parser {
             });
         }
         if let Expr::Ident { name, span } = expr {
-            return Ok(AssignTarget::Name(name, span));
+            return Ok(AssignTarget::Name {
+                name,
+                ty: None,
+                span,
+            });
         }
         Err(ParseError::new(
             ParseErrorKind::InvalidAssignmentTarget,
@@ -1163,7 +1183,7 @@ impl Parser {
                 Ok(Expr::Ident { name, span })
             }
             TokenKind::LBracket => self.parse_list_expr_inner(span),
-            TokenKind::LBrace => self.parse_dict_expr_inner(span),
+            TokenKind::LBrace => self.parse_brace_expr_inner(span),
             TokenKind::LParen => self.parse_group_or_tuple_inner(span),
             _ => Err(ParseError::new(
                 ParseErrorKind::UnexpectedToken,
@@ -1281,6 +1301,7 @@ impl Parser {
 
     fn parse_list_expr_inner(&mut self, start: Span) -> ParseResult<Expr> {
         let mut elements = Vec::new();
+        self.skip_newlines();
         if !self.check(&TokenKind::RBracket) {
             loop {
                 elements.push(self.parse_expr()?);
@@ -1288,11 +1309,13 @@ impl Parser {
                     break;
                 }
                 self.bump();
+                self.skip_newlines();
                 if self.check(&TokenKind::RBracket) {
                     break;
                 }
             }
         }
+        self.skip_newlines();
         self.expect(&TokenKind::RBracket)?;
         Ok(Expr::List {
             elements,
@@ -1302,28 +1325,62 @@ impl Parser {
 
     fn parse_dict_expr(&mut self) -> ParseResult<Expr> {
         let start = self.bump_kind(&TokenKind::LBrace)?;
-        self.parse_dict_expr_inner(start)
+        self.parse_brace_expr_inner(start)
+    }
+
+    /// `{a: 1, b: 2}` → Dict; `{1, 2, 3}` → Set (colon disambiguates).
+    fn parse_brace_expr_inner(&mut self, start: Span) -> ParseResult<Expr> {
+        self.skip_newlines();
+        if self.check(&TokenKind::RBrace) {
+            self.bump();
+            return Ok(Expr::Dict {
+                entries: vec![],
+                span: span_between(start, self.previous_span()),
+            });
+        }
+        let first = self.parse_expr()?;
+        if self.check(&TokenKind::Colon) {
+            let mut entries = vec![];
+            self.bump();
+            self.skip_newlines();
+            entries.push((first, self.parse_expr()?));
+            while self.check(&TokenKind::Comma) {
+                self.bump();
+                self.skip_newlines();
+                if self.check(&TokenKind::RBrace) {
+                    break;
+                }
+                let key = self.parse_expr()?;
+                self.expect(&TokenKind::Colon)?;
+                self.skip_newlines();
+                entries.push((key, self.parse_expr()?));
+            }
+            self.skip_newlines();
+            self.expect(&TokenKind::RBrace)?;
+            return Ok(Expr::Dict {
+                entries,
+                span: span_between(start, self.previous_span()),
+            });
+        }
+        let mut elements = vec![first];
+        while self.check(&TokenKind::Comma) {
+            self.bump();
+            self.skip_newlines();
+            if self.check(&TokenKind::RBrace) {
+                break;
+            }
+            elements.push(self.parse_expr()?);
+        }
+        self.skip_newlines();
+        self.expect(&TokenKind::RBrace)?;
+        Ok(Expr::Set {
+            elements,
+            span: span_between(start, self.previous_span()),
+        })
     }
 
     fn parse_dict_expr_inner(&mut self, start: Span) -> ParseResult<Expr> {
-        let mut entries = Vec::new();
-        if !self.check(&TokenKind::RBrace) {
-            loop {
-                let key = self.parse_expr()?;
-                self.expect(&TokenKind::Colon)?;
-                let value = self.parse_expr()?;
-                entries.push((key, value));
-                if !self.check(&TokenKind::Comma) {
-                    break;
-                }
-                self.bump();
-            }
-        }
-        self.expect(&TokenKind::RBrace)?;
-        Ok(Expr::Dict {
-            entries,
-            span: span_between(start, self.previous_span()),
-        })
+        self.parse_brace_expr_inner(start)
     }
 
     fn parse_group_or_tuple(&mut self) -> ParseResult<Expr> {
@@ -1846,6 +1903,7 @@ impl ExprSpan for Expr {
             | Expr::Http { span, .. }
             | Expr::List { span, .. }
             | Expr::Dict { span, .. }
+            | Expr::Set { span, .. }
             | Expr::Tuple { span, .. }
             | Expr::Object { span, .. }
             | Expr::Lambda { span, .. }

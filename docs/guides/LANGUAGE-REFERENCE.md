@@ -272,13 +272,120 @@ append "\nMore text" to "out.txt".
 
 ---
 
-## Collections (basic)
+## Collections
+
+### List
+
+```lp
+numbers = [1, 2, 3].
+names = ["Naga", "Alex", "John"].
+mixed = [1, "Hello", true].
+
+print numbers[0].
+numbers[1] = 20.
+
+numbers.append(4).
+numbers.insert(2, 100).
+numbers.remove(3).
+numbers.pop().
+numbers.clear().
+numbers.sort().
+numbers.reverse().
+print numbers.contains(5).
+print numbers.length().
+
+for item in numbers,
+    print item.
+..
+```
+
+Typed annotation: `scores: List<Int> = [95, 87, 92].`
+
+| Method | Description |
+|--------|-------------|
+| `append(x)` | Add element at end |
+| `insert(i, x)` | Insert at index |
+| `remove(x)` | Remove first matching value |
+| `pop()` / `pop(i)` | Remove and return last / indexed element |
+| `clear()` | Remove all elements |
+| `sort()` | Sort in place |
+| `reverse()` | Reverse in place |
+| `contains(x)` | Returns `true`/`false` |
+| `length()` | Number of elements |
+
+Also available: global `len(list)`.
+
+### Dictionary
+
+```lp
+student = {
+    name : "Naga",
+    age : 18,
+    college : "DSU"
+}.
+
+print student.name.
+print student["name"].
+student.age = 19.
+student["age"] = 20.
+
+print student.keys().
+print student.values().
+print student.items().
+student.remove("age").
+student.contains("name").
+student.clear().
+```
+
+| Method | Description |
+|--------|-------------|
+| `keys()` | List of keys |
+| `values()` | List of values |
+| `items()` | List of `[key, value]` pairs |
+| `remove(key)` | Remove entry |
+| `contains(key)` | Key exists? |
+| `clear()` | Remove all entries |
+| `length()` | Number of entries |
+
+### Set
+
+```lp
+numbers = {1, 2, 3}.
+other = {3, 4, 5}.
+
+numbers.add(4).
+numbers.remove(2).
+print numbers.contains(1).
+numbers.clear().
+
+print numbers.union(other).
+print numbers.intersection(other).
+print numbers.difference(other).
+```
+
+`{1, 2, 3}` is a **Set**; `{key: value}` is a **Dict** (colon disambiguates).
+
+### Tuple (immutable)
+
+```lp
+point = (10, 20).
+print point[0].
+print point.length().
+```
+
+Tuple index assignment is not allowed.
+
+---
+
+## Collections (basic — legacy summary)
 
 | Feature | Example |
 |---------|---------|
 | List literal | `[1, 2, 3]` |
-| Dict literal | `{"a": 1, "b": 2}` |
-| Index | `list[0]`, `dict["key"]` |
+| Dict literal | `{name: "Naga", age: 18}` |
+| Set literal | `{1, 2, 3}` |
+| Tuple literal | `(10, 20)` |
+| Index | `list[0]`, `dict["key"]`, `tuple[0]` |
 | String concat | `"Hello " with name` (not `+`) |
 
 ---

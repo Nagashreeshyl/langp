@@ -16,6 +16,8 @@ pub fn register_builtins(env: &super::env::Environment) {
                 Value::String(s) => s.chars().count() as i64,
                 Value::List(l) => l.borrow().len() as i64,
                 Value::Dict(d) => d.borrow().len() as i64,
+                Value::Set(s) => s.borrow().len() as i64,
+                Value::Tuple(t) => t.len() as i64,
                 other => {
                     return Err(RuntimeError::new(
                         RuntimeErrorKind::TypeError,

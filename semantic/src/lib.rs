@@ -2,6 +2,7 @@
 
 mod analyze;
 mod diagnostic;
+mod types;
 
 pub use analyze::analyze;
 pub use diagnostic::{Diagnostic, DiagnosticKind, Severity};

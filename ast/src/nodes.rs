@@ -150,7 +150,11 @@ pub enum AssignOp {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AssignTarget {
-    Name(String, Span),
+    Name {
+        name: String,
+        ty: Option<TypeExpr>,
+        span: Span,
+    },
     Member { object: Box<Expr>, name: String, span: Span },
     Index { object: Box<Expr>, index: Box<Expr>, span: Span },
     Tuple(Vec<String>, Span),
@@ -304,6 +308,10 @@ pub enum Expr {
     },
     Dict {
         entries: Vec<(Expr, Expr)>,
+        span: Span,
+    },
+    Set {
+        elements: Vec<Expr>,
         span: Span,
     },
     Tuple {

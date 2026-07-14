@@ -1,4 +1,5 @@
 use crate::diagnostic::{Diagnostic, DiagnosticKind, Severity};
+use crate::types;
 use langp_ast::*;
 use langp_lexer::Span;
 use std::collections::{HashMap, HashSet};
@@ -125,7 +126,7 @@ impl Checker {
     fn collect_bindings(&mut self, stmt: &Stmt, scope: &mut HashSet<String>) {
         match stmt {
             Stmt::Assign { target, .. } => match target {
-                AssignTarget::Name(name, _) => {
+                AssignTarget::Name { name, .. } => {
                     scope.insert(name.clone());
                 }
                 AssignTarget::Tuple(names, _) => {
@@ -163,6 +164,22 @@ impl Checker {
             Stmt::Assign { target, value, .. } => {
                 self.check_assign_target(target, locals);
                 self.check_expr(value, locals);
+                if let AssignTarget::Name { ty: Some(ann), span, .. } = target {
+                    let expected = types::from_type_expr(ann);
+                    let actual = types::infer_expr(value);
+                    if !types::compatible(&expected, &actual) {
+                        self.error(
+                            DiagnosticKind::TypeMismatch,
+                            *span,
+                            format!(
+                                "type mismatch: expected {}, got {}\n  \
+                                 help: adjust the value or annotation",
+                                types::type_label(&expected),
+                                types::type_label(&actual)
+                            ),
+                        );
+                    }
+                }
             }
             Stmt::Print { parts, .. } => {
                 for p in parts {
@@ -245,7 +262,7 @@ impl Checker {
 
     fn check_assign_target(&mut self, target: &AssignTarget, locals: &HashSet<String>) {
         match target {
-            AssignTarget::Name(_, _) => {
+            AssignTarget::Name { .. } => {
                 // Assignment defines the name; no "may be undefined" check on the target.
             }
             AssignTarget::Member { object, .. } | AssignTarget::Index { object, .. } => {
@@ -298,14 +315,16 @@ impl Checker {
                     self.check_expr(p, locals);
                 }
             }
-            Expr::List { elements, .. } | Expr::Tuple { elements, .. } => {
+            Expr::List { elements, .. } | Expr::Tuple { elements, .. } | Expr::Set { elements, .. } => {
                 for e in elements {
                     self.check_expr(e, locals);
                 }
             }
             Expr::Dict { entries, .. } => {
                 for (k, v) in entries {
-                    self.check_expr(k, locals);
+                    if !matches!(k, Expr::Ident { .. } | Expr::String { .. }) {
+                        self.check_expr(k, locals);
+                    }
                     self.check_expr(v, locals);
                 }
             }

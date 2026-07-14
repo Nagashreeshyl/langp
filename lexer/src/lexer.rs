@@ -18,6 +18,8 @@ pub struct Lexer<'source> {
     /// True after `handle_line_start` on this line; enables `..` block-close lexing.
     line_pending_block_close: bool,
     indent_stack: Vec<usize>,
+    /// Nesting depth of `()`, `[]`, `{}` — indentation is ignored inside.
+    delimiter_depth: u32,
     pending: Vec<Token>,
     errors: Vec<LexError>,
     /// When true, the token after `input` may be an input-type keyword.
@@ -36,6 +38,7 @@ impl<'source> Lexer<'source> {
             at_line_start: true,
             line_pending_block_close: false,
             indent_stack: vec![0],
+            delimiter_depth: 0,
             pending: Vec::new(),
             errors: Vec::new(),
             after_input: false,
@@ -216,6 +219,10 @@ impl<'source> Lexer<'source> {
                 '\n' | '\r' => break,
                 _ => break,
             }
+        }
+
+        if self.delimiter_depth > 0 {
+            return Ok(());
         }
 
         if indent > 0 && indent % INDENT_WIDTH != 0 {
@@ -761,6 +768,26 @@ impl<'source> Lexer<'source> {
         Token::new(kind, Span::new(start, self.pos, line, col), lexeme)
     }
 
+    fn emit_delimiter(
+        &mut self,
+        kind: TokenKind,
+        start: usize,
+        line: u32,
+        col: u32,
+        lexeme: &str,
+    ) -> Token {
+        match kind {
+            TokenKind::LParen | TokenKind::LBracket | TokenKind::LBrace => {
+                self.delimiter_depth += 1;
+            }
+            TokenKind::RParen | TokenKind::RBracket | TokenKind::RBrace => {
+                self.delimiter_depth = self.delimiter_depth.saturating_sub(1);
+            }
+            _ => {}
+        }
+        self.tok(kind, start, line, col, lexeme)
+    }
+
     fn lex_operator_or_punct(
         &mut self,
         start: usize,
@@ -894,12 +921,12 @@ impl<'source> Lexer<'source> {
                 Ok(self.tok(TokenKind::Comma, start, line, col, ","))
             }
             ':' => Ok(self.tok(TokenKind::Colon, start, line, col, ":")),
-            '(' => Ok(self.tok(TokenKind::LParen, start, line, col, "(")),
-            ')' => Ok(self.tok(TokenKind::RParen, start, line, col, ")")),
-            '[' => Ok(self.tok(TokenKind::LBracket, start, line, col, "[")),
-            ']' => Ok(self.tok(TokenKind::RBracket, start, line, col, "]")),
-            '{' => Ok(self.tok(TokenKind::LBrace, start, line, col, "{")),
-            '}' => Ok(self.tok(TokenKind::RBrace, start, line, col, "}")),
+            '(' => Ok(self.emit_delimiter(TokenKind::LParen, start, line, col, "(")),
+            ')' => Ok(self.emit_delimiter(TokenKind::RParen, start, line, col, ")")),
+            '[' => Ok(self.emit_delimiter(TokenKind::LBracket, start, line, col, "[")),
+            ']' => Ok(self.emit_delimiter(TokenKind::RBracket, start, line, col, "]")),
+            '{' => Ok(self.emit_delimiter(TokenKind::LBrace, start, line, col, "{")),
+            '}' => Ok(self.emit_delimiter(TokenKind::RBrace, start, line, col, "}")),
             _ => Err(LexError::new(
                 LexErrorKind::UnexpectedChar(ch),
                 Span::new(start, self.pos, line, col),

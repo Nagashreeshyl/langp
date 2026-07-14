@@ -1,8 +1,9 @@
 use crate::builtins::register_builtins;
+use crate::collections;
 use crate::env::Environment;
 use langp_ast::*;
 use langp_lexer::{InputTypeKeyword, Span};
-use langp_runtime::{RuntimeError, RuntimeErrorKind, RuntimeResult, UserFunction, Value};
+use langp_runtime::{set_insert, RuntimeError, RuntimeErrorKind, RuntimeResult, UserFunction, Value};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io::{self, Write};
@@ -194,7 +195,7 @@ impl Interpreter {
 
     fn eval_for(&mut self, stmt: &ForStmt, env: Rc<Environment>) -> RuntimeResult<Flow> {
         let iterable = self.eval_expr(&stmt.iterable, env.clone())?;
-        let items = value_to_iterable(&iterable, stmt.span)?;
+        let items = collections::value_to_iterable(&iterable, stmt.span)?;
         for item in items {
             let loop_env = Rc::new(Environment::child(env.clone()));
             match &stmt.binding {
@@ -202,7 +203,7 @@ impl Interpreter {
                     loop_env.define(name.clone(), item);
                 }
                 ForBinding::KeyValue(k, v, span) => {
-                    let (key, val) = item_as_pair(&item, *span)?;
+                    let (key, val) = collections::item_as_pair(&item, *span)?;
                     loop_env.define(k.clone(), key);
                     loop_env.define(v.clone(), val);
                 }
@@ -331,7 +332,7 @@ impl Interpreter {
         };
 
         match target {
-            AssignTarget::Name(name, _) => {
+            AssignTarget::Name { name, .. } => {
                 if env.set(name, new_val.clone()) {
                     return Ok(());
                 }
@@ -355,37 +356,20 @@ impl Interpreter {
             AssignTarget::Index { object, index, .. } => {
                 let obj = self.eval_expr(object, env.clone())?;
                 let idx = self.eval_expr(index, env.clone())?;
-                match obj {
-                    Value::List(l) => {
-                        let i = index_as_usize(&idx, span)?;
-                        let mut list = l.borrow_mut();
-                        if i >= list.len() {
-                            return Err(RuntimeError::new(
-                                RuntimeErrorKind::IndexOutOfBounds,
-                                span,
-                                format!("index {i} out of bounds"),
-                            ));
-                        }
-                        list[i] = new_val;
-                    }
+                collections::index_set(obj, idx, new_val, span)?;
+            }
+            AssignTarget::Tuple(names, s) => {
+                let items: Vec<Value> = match new_val {
+                    Value::List(l) => l.borrow().clone(),
+                    Value::Tuple(t) => t.as_ref().clone(),
                     _ => {
                         return Err(RuntimeError::new(
                             RuntimeErrorKind::TypeError,
-                            span,
-                            "index assignment requires List",
+                            *s,
+                            "tuple assignment requires List or Tuple value",
                         ));
                     }
-                }
-            }
-            AssignTarget::Tuple(names, s) => {
-                let Value::List(items) = new_val else {
-                    return Err(RuntimeError::new(
-                        RuntimeErrorKind::TypeError,
-                        *s,
-                        "tuple assignment requires List value",
-                    ));
                 };
-                let items = items.borrow();
                 if items.len() != names.len() {
                     return Err(RuntimeError::new(
                         RuntimeErrorKind::TypeError,
@@ -411,7 +395,7 @@ impl Interpreter {
         span: Span,
     ) -> RuntimeResult<Value> {
         match target {
-            AssignTarget::Name(name, _) => env.get(name).ok_or_else(|| {
+            AssignTarget::Name { name, .. } => env.get(name).ok_or_else(|| {
                 RuntimeError::new(
                     RuntimeErrorKind::UndefinedVariable,
                     span,
@@ -420,12 +404,12 @@ impl Interpreter {
             }),
             AssignTarget::Member { object, name, .. } => {
                 let obj = self.eval_expr(object, env)?;
-                member_get(&obj, name, span)
+                collections::member_get(&obj, name, span)
             }
             AssignTarget::Index { object, index, .. } => {
                 let obj = self.eval_expr(object, env.clone())?;
                 let idx = self.eval_expr(index, env.clone())?;
-                index_get(&obj, &idx, span)
+                collections::index_get(&obj, &idx, span)
             }
             AssignTarget::Tuple(_, s) => Err(RuntimeError::new(
                 RuntimeErrorKind::InvalidOperation,
@@ -465,6 +449,14 @@ impl Interpreter {
                 unary_op(*op, v, *span)
             }
             Expr::Call { callee, args, span } => {
+                if let Expr::Member { object, name, .. } = callee.as_ref() {
+                    let obj = self.eval_expr(object, env.clone())?;
+                    let mut arg_vals = Vec::new();
+                    for a in args {
+                        arg_vals.push(self.eval_expr(&a.value, env.clone())?);
+                    }
+                    return collections::dispatch_method(&obj, name, &arg_vals, *span);
+                }
                 let func = self.eval_expr(callee, env.clone())?;
                 let mut arg_vals = Vec::new();
                 for a in args {
@@ -474,12 +466,12 @@ impl Interpreter {
             }
             Expr::Member { object, name, span } => {
                 let obj = self.eval_expr(object, env)?;
-                member_get(&obj, name, *span)
+                collections::member_get(&obj, name, *span)
             }
             Expr::Index { object, index, span } => {
                 let obj = self.eval_expr(object, env.clone())?;
                 let idx = self.eval_expr(index, env)?;
-                index_get(&obj, &idx, *span)
+                collections::index_get(&obj, &idx, *span)
             }
             Expr::With { parts, .. } => {
                 let mut out = String::new();
@@ -505,17 +497,25 @@ impl Interpreter {
             Expr::Dict { entries, .. } => {
                 let mut map = HashMap::new();
                 for (k, v) in entries {
-                    let key = value_to_string(&self.eval_expr(k, env.clone())?, expr.span())?;
+                    let key = dict_key_from_expr(k, env.clone(), self, expr.span())?;
                     map.insert(key, self.eval_expr(v, env.clone())?);
                 }
                 Ok(Value::Dict(Rc::new(RefCell::new(map))))
+            }
+            Expr::Set { elements, .. } => {
+                let mut vals = Vec::new();
+                for e in elements {
+                    let v = self.eval_expr(e, env.clone())?;
+                    set_insert(&mut vals, v);
+                }
+                Ok(Value::Set(Rc::new(RefCell::new(vals))))
             }
             Expr::Tuple { elements, .. } => {
                 let mut vals = Vec::new();
                 for e in elements {
                     vals.push(self.eval_expr(e, env.clone())?);
                 }
-                Ok(Value::List(Rc::new(RefCell::new(vals))))
+                Ok(Value::Tuple(Rc::new(vals)))
             }
             Expr::Object { args, fields, .. } => {
                 let mut map = HashMap::new();
@@ -530,7 +530,11 @@ impl Interpreter {
                 if let Some(f) = fields {
                     for stmt in &f.statements {
                         if let Stmt::Assign {
-                            target: AssignTarget::Name(name, _),
+                            target: AssignTarget::Name {
+                                name,
+                                ty: None,
+                                span: _,
+                            },
                             op: AssignOp::Assign,
                             value,
                             ..
@@ -739,6 +743,7 @@ impl ExprSpan for Expr {
             | Expr::Http { span, .. }
             | Expr::List { span, .. }
             | Expr::Dict { span, .. }
+            | Expr::Set { span, .. }
             | Expr::Tuple { span, .. }
             | Expr::Object { span, .. }
             | Expr::Lambda { span, .. }
@@ -764,98 +769,16 @@ fn value_to_string(v: &Value, _span: Span) -> RuntimeResult<String> {
     }
 }
 
-fn index_as_usize(v: &Value, span: Span) -> RuntimeResult<usize> {
-    match v {
-        Value::Int(n) if *n >= 0 => Ok(*n as usize),
-        _ => Err(RuntimeError::new(
-            RuntimeErrorKind::TypeError,
-            span,
-            "index must be non-negative Int",
-        )),
-    }
-}
-
-fn member_get(obj: &Value, name: &str, span: Span) -> RuntimeResult<Value> {
-    match obj {
-        Value::Dict(d) => d.borrow().get(name).cloned().ok_or_else(|| {
-            RuntimeError::new(
-                RuntimeErrorKind::UndefinedVariable,
-                span,
-                format!("no member '{name}'"),
-            )
-        }),
-        _ => Err(RuntimeError::new(
-            RuntimeErrorKind::TypeError,
-            span,
-            "member access requires Dict",
-        )),
-    }
-}
-
-fn index_get(obj: &Value, idx: &Value, span: Span) -> RuntimeResult<Value> {
-    match (obj, idx) {
-        (Value::List(l), Value::Int(i)) => {
-            let i = *i as usize;
-            l.borrow().get(i).cloned().ok_or_else(|| {
-                RuntimeError::new(
-                    RuntimeErrorKind::IndexOutOfBounds,
-                    span,
-                    format!("index {i} out of bounds"),
-                )
-            })
-        }
-        (Value::String(s), Value::Int(i)) => {
-            let i = *i as usize;
-            s.chars()
-                .nth(i)
-                .map(|c| Value::Char(c))
-                .ok_or_else(|| {
-                    RuntimeError::new(
-                        RuntimeErrorKind::IndexOutOfBounds,
-                        span,
-                        format!("index {i} out of bounds"),
-                    )
-                })
-        }
-        _ => Err(RuntimeError::new(
-            RuntimeErrorKind::TypeError,
-            span,
-            "invalid index operation",
-        )),
-    }
-}
-
-fn value_to_iterable(v: &Value, span: Span) -> RuntimeResult<Vec<Value>> {
-    match v {
-        Value::List(l) => Ok(l.borrow().clone()),
-        Value::String(s) => Ok(s.chars().map(|c| Value::Char(c)).collect()),
-        _ => Err(RuntimeError::new(
-            RuntimeErrorKind::TypeError,
-            span,
-            "for loop requires List or String",
-        )),
-    }
-}
-
-fn item_as_pair(v: &Value, span: Span) -> RuntimeResult<(Value, Value)> {
-    match v {
-        Value::List(l) => {
-            let l = l.borrow();
-            if l.len() == 2 {
-                Ok((l[0].clone(), l[1].clone()))
-            } else {
-                Err(RuntimeError::new(
-                    RuntimeErrorKind::TypeError,
-                    span,
-                    "for key, value requires pairs of length 2",
-                ))
-            }
-        }
-        _ => Err(RuntimeError::new(
-            RuntimeErrorKind::TypeError,
-            span,
-            "for key, value requires List pairs",
-        )),
+fn dict_key_from_expr(
+    key: &Expr,
+    env: Rc<Environment>,
+    interp: &mut Interpreter,
+    span: Span,
+) -> RuntimeResult<String> {
+    match key {
+        Expr::Ident { name, .. } => Ok(name.clone()),
+        Expr::String { value, .. } => Ok(value.clone()),
+        other => value_to_string(&interp.eval_expr(other, env)?, span),
     }
 }
 
@@ -1005,7 +928,7 @@ mod tests {
     fn run_hello() {
         let source = r#"function greet(name),
     print "Hello " with name with "!".
-.
+..
 greet("World")."#;
         let program = parse(source).unwrap();
         run(&program).unwrap();
