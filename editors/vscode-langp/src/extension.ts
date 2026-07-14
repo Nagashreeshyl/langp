@@ -20,6 +20,7 @@ import {
   matchesPrefix,
   wordPrefix,
 } from "./langp-api";
+import { variableCompletions } from "./variables";
 
 let client: LanguageClient | undefined;
 const diagnosticCollection = vscode.languages.createDiagnosticCollection("langp");
@@ -151,6 +152,13 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
 
           const items: vscode.CompletionItem[] = [];
           const seen = new Set<string>();
+
+          for (const v of variableCompletions(doc, prefix)) {
+            if (!seen.has(v.label as string)) {
+              seen.add(v.label as string);
+              items.push(v);
+            }
+          }
 
           const addEntry = (entry: import("./langp-api").LangpEntry) => {
             if (!matchesPrefix(entry.name, prefix) || seen.has(entry.name)) return;

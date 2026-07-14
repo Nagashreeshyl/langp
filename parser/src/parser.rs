@@ -1180,9 +1180,9 @@ impl Parser {
                 }
                 Ok(Expr::Ident { name, span })
             }
-            TokenKind::LBracket => self.parse_list_expr(),
-            TokenKind::LBrace => self.parse_dict_expr(),
-            TokenKind::LParen => self.parse_group_or_tuple(),
+            TokenKind::LBracket => self.parse_list_expr_inner(span),
+            TokenKind::LBrace => self.parse_dict_expr_inner(span),
+            TokenKind::LParen => self.parse_group_or_tuple_inner(span),
             _ => Err(ParseError::new(
                 ParseErrorKind::UnexpectedToken,
                 span,
@@ -1294,6 +1294,10 @@ impl Parser {
 
     fn parse_list_expr(&mut self) -> ParseResult<Expr> {
         let start = self.bump_kind(&TokenKind::LBracket)?;
+        self.parse_list_expr_inner(start)
+    }
+
+    fn parse_list_expr_inner(&mut self, start: Span) -> ParseResult<Expr> {
         let mut elements = Vec::new();
         if !self.check(&TokenKind::RBracket) {
             loop {
@@ -1316,6 +1320,10 @@ impl Parser {
 
     fn parse_dict_expr(&mut self) -> ParseResult<Expr> {
         let start = self.bump_kind(&TokenKind::LBrace)?;
+        self.parse_dict_expr_inner(start)
+    }
+
+    fn parse_dict_expr_inner(&mut self, start: Span) -> ParseResult<Expr> {
         let mut entries = Vec::new();
         if !self.check(&TokenKind::RBrace) {
             loop {
@@ -1338,6 +1346,10 @@ impl Parser {
 
     fn parse_group_or_tuple(&mut self) -> ParseResult<Expr> {
         let start = self.bump_kind(&TokenKind::LParen)?;
+        self.parse_group_or_tuple_inner(start)
+    }
+
+    fn parse_group_or_tuple_inner(&mut self, start: Span) -> ParseResult<Expr> {
         if self.check(&TokenKind::RParen) {
             self.bump();
             return Ok(Expr::Tuple {
@@ -1491,10 +1503,49 @@ impl Parser {
     }
 
     fn is_lambda_params(&self) -> bool {
-        matches!(
-            self.peek_kind(),
-            Some(TokenKind::Ident(_)) | Some(TokenKind::RParen)
-        )
+        let mut i = self.pos;
+        let mut depth = 0;
+        while i < self.tokens.len() {
+            match &self.tokens[i].kind {
+                TokenKind::LParen => depth += 1,
+                TokenKind::RParen => {
+                    if depth == 0 {
+                        i += 1;
+                        return self
+                            .tokens
+                            .get(i)
+                            .is_some_and(|t| t.kind == TokenKind::FatArrow);
+                    }
+                    depth -= 1;
+                }
+                // Arithmetic / logic at the top level of `( … )` → grouped expr, not lambda.
+                TokenKind::Plus
+                | TokenKind::Minus
+                | TokenKind::Star
+                | TokenKind::Slash
+                | TokenKind::Percent
+                | TokenKind::IntDiv
+                | TokenKind::Eq
+                | TokenKind::EqEq
+                | TokenKind::NotEq
+                | TokenKind::Lt
+                | TokenKind::Gt
+                | TokenKind::LtEq
+                | TokenKind::GtEq
+                | TokenKind::AndAnd
+                | TokenKind::OrOr
+                | TokenKind::Keyword(Keyword::With)
+                | TokenKind::Keyword(Keyword::And)
+                | TokenKind::Keyword(Keyword::Or) => {
+                    if depth == 0 {
+                        return false;
+                    }
+                }
+                _ => {}
+            }
+            i += 1;
+        }
+        false
     }
 
     fn is_assign_start(&self) -> bool {
@@ -1786,5 +1837,14 @@ mod tests {
         let source = "if true,\n    print \"yes\".\n..";
         let program = parse(source).unwrap();
         assert_eq!(program.items.len(), 1);
+    }
+
+    #[test]
+    fn parse_print_with_parenthesized_arithmetic() {
+        let source = r#"num1 = input number "a".
+num2 = input number "b".
+print "Sum : " with (num1 + num2)."#;
+        let program = parse(source).unwrap();
+        assert_eq!(program.items.len(), 3);
     }
 }
