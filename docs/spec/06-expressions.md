@@ -51,7 +51,7 @@ Types MAY implement the `Composable` interface to define custom `with` behavior:
 ```lp
 interface Composable,
     function compose_with(other: Any) -> Self.
-.
+..
 ```
 
 ### 6.2.5 Restrictions
@@ -117,11 +117,11 @@ Keywords `and`, `or`, `not` are preferred over `&&`, `||`, `!` but both are supp
 ```lp
 if age >= 18 and has_license,
     allow_driving().
-.
+..
 
 if not is_empty(list),
     process(list).
-.
+..
 ```
 
 ## 6.6 Bitwise Operators
@@ -171,12 +171,12 @@ result = (a + b) * c.
 @ Inclusive range
 for i in 1..10,
     print i.
-.
+..
 
 @ Exclusive end
 for i in 1..<10,
     print i.
-.
+..
 ```
 
 Range types: `Range<T>` where `T` is `Int` or `Char`.
@@ -203,17 +203,17 @@ Both forms are equivalent. The block form (comma-based) is preferred for multi-l
 @ Type test (smart cast on success)
 if value is String,
     print value.length.
-.
+..
 
 @ Negated type test
 if value is not Int,
     print "not a number".
-.
+..
 
 @ Identity comparison
 if a is b,
     print "same object".
-.
+..
 ```
 
 `is` for types performs runtime type checking. `is` for values performs reference identity comparison.
@@ -235,7 +235,7 @@ Multi-line lambda:
 process = (data) =>,
     cleaned = clean(data).
     return transform(cleaned).
-.
+..
 ```
 
 ## 6.12 Collection Expressions
@@ -428,7 +428,7 @@ print "Hello " with name.
 ```lp
 if input boolean "Continue? ",
     process().
-.
+..
 
 greet(input text "Your name : ").
 

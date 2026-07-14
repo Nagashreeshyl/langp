@@ -26,6 +26,13 @@ fn parse_hello_fixture() {
     assert!(!program.items.is_empty());
 }
 
+#[test]
+fn invalid_dot_block_close_rejected() {
+    let path = fixture_root().join("invalid/dot_block_close.lp");
+    let source = fs::read_to_string(&path).unwrap();
+    assert!(parse(&source).is_err(), "lone . block close must be rejected");
+}
+
 fn list_lp_files(dir: &Path) -> Vec<PathBuf> {
     let mut files: Vec<PathBuf> = fs::read_dir(dir)
         .unwrap()

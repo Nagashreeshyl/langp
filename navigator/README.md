@@ -20,7 +20,7 @@ browser = Browser(),
     name = "Nova".
     homepage = "https://google.com".
     theme = dark.
-.
+..
 ```
 
 ## Status

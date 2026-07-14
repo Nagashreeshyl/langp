@@ -1,5 +1,7 @@
 # Chapter 1 — Introduction
 
+> **Implementation note:** This chapter describes the full Lang.P vision. For features that work in the current interpreter, see the [Lang.P Manual](../manual/README.md) and [Language Reference v0.1](../guides/LANGUAGE-REFERENCE.md).
+
 ## 1.1 Purpose
 
 Lang.P (spoken name: **Lang**) is a general-purpose, statically typed programming language with type inference. It is designed for readability first: source code should read like natural instructions while remaining expressive enough for production systems.
@@ -84,14 +86,14 @@ function handle_request(request),
     name = request.query.get("name", default = "World").
     body = "Hello " with name with "!".
     return response(200, body = body, content_type = "text/plain").
-.
+..
 
 server = Server(port = 8080).
 
 on server.request,
     reply = handle_request(server.request).
     server.respond(reply).
-.
+..
 
 print "Server running on port 8080".
 server.start().

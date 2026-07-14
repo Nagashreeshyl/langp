@@ -92,14 +92,14 @@ function handle_request(request),
     name = request.query.get("name", default = "World").
     body = "Hello " with name with "!".
     return response(200, body = body, content_type = "text/plain").
-.
+..
 
 server = Server(port = 8080).
 
 on server.request,
     reply = handle_request(server.request).
     server.respond(reply).
-.
+..
 
 print "Server running on port 8080".
 server.start().
@@ -444,7 +444,7 @@ run_app().
 function main(),
     print "Starting application".
     run_app().
-.
+..
 
 @ langc invokes main() automatically if present
 ```
@@ -474,11 +474,11 @@ API_URL = "https://api.example.com".
 type Config,
     host.
     port.
-.
+..
 
 function load_config() -> Config,
     @ ...
-.
+..
 
 config = load_config().
 ```
@@ -531,13 +531,13 @@ private helper_cache = {}.
 
 public function fetch(url),
     @ ...
-.
+..
 
 type User,
     public name.
     internal id.
     private password_hash.
-.
+..
 ```
 
 ## 3.7 Namespaces
@@ -717,7 +717,7 @@ Defined with the `type` keyword. See [Chapter 10](10-object-model.md).
 type User,
     name: String.
     age: Int.
-.
+..
 ```
 
 ### 4.4.2 Enum
@@ -727,13 +727,13 @@ enum Color,
     Red.
     Green.
     Blue.
-.
+..
 
 enum Status,
     Active(value: Int).
     Inactive.
     Pending(reason: String).
-.
+..
 ```
 
 Enums with associated values support pattern matching.
@@ -744,7 +744,7 @@ Enums with associated values support pattern matching.
 interface Drawable,
     function draw() -> Void.
     function bounds() -> (Int, Int, Int, Int).
-.
+..
 ```
 
 ### 4.4.4 Type Alias
@@ -767,7 +767,7 @@ function Type ::= "function" "(" ParamTypeList? ")" "->" Type
 @ Type: function(Int, Int) -> Int
 add: function(Int, Int) -> Int = function(a, b),
     return a + b.
-.
+..
 
 result = add(3, 4).
 ```
@@ -782,8 +782,8 @@ type Box<T>,
 
     function get() -> T,
         return self.value.
-    .
-.
+    ..
+..
 
 box = Box<Int>(value = 42).
 ```
@@ -793,7 +793,7 @@ Generic constraints:
 ```lp
 type Container<T: Comparable>,
     items: List<T>.
-.
+..
 ```
 
 Multiple constraints: `T: Comparable & Serializable`.
@@ -808,7 +808,7 @@ Any type `T` can be made nullable as `T?`, allowing `null`:
 name: String? = null.
 if name != null,
     print name.    @ Smart cast: name is String here
-.
+..
 ```
 
 ### 4.7.2 Optional (`Optional<T>`)
@@ -818,7 +818,7 @@ Explicit optional type, equivalent to `T?` but used in API signatures for clarit
 ```lp
 function find_user(id: Int) -> Optional<User>,
     @ returns null if not found
-.
+..
 ```
 
 The `?` suffix is syntactic sugar for `Optional<T>`.
@@ -851,7 +851,7 @@ items: List<String> = [].
 @ Parameters MUST be inferrable or annotated
 function greet(name),    @ OK — name inferred as Any if no constraint; SHOULD annotate public APIs
     print name.
-.
+..
 ```
 
 ## 4.9 Type Compatibility
@@ -907,7 +907,7 @@ value = "hello".
 
 if value is String,
     print value.    @ Smart cast to String
-.
+..
 ```
 
 ## 4.13 The `Void` Type
@@ -918,7 +918,7 @@ if value is String,
 function log_message(msg: String),
     print msg.
     @ implicit return void
-.
+..
 ```
 
 `Void` is not a valid type for variables.
@@ -1127,7 +1127,7 @@ Variables declared inside a block are visible only within that block:
 if true,
     local = 42.
     print local.
-.
+..
 @ print local.    @ Error: local not in scope
 ```
 
@@ -1139,7 +1139,7 @@ Parameters and local variables are scoped to the function body:
 function process(data),
     temp = transform(data).
     return temp.
-.
+..
 ```
 
 ### 5.4.3 Module Scope
@@ -1151,7 +1151,7 @@ CONFIG = load_config().
 
 function run(),
     print CONFIG.host.
-.
+..
 ```
 
 ### 5.4.4 Closure Capture
@@ -1164,8 +1164,8 @@ function make_counter(),
     return function(),
         count += 1.
         return count.
-    .
-.
+    ..
+..
 
 counter = make_counter().
 print counter().    @ 1
@@ -1181,7 +1181,7 @@ x = 10.
 if true,
     x = 20.    @ shadows outer x
     print x.   @ 20
-.
+..
 print x.       @ 10
 ```
 
@@ -1207,7 +1207,7 @@ const MAX_RETRIES = 3.
 
 function get_config() -> Config,
     return load_config().
-.
+..
 ```
 
 ## 5.8 Environment Variables
@@ -1329,7 +1329,7 @@ Types MAY implement the `Composable` interface to define custom `with` behavior:
 ```lp
 interface Composable,
     function compose_with(other: Any) -> Self.
-.
+..
 ```
 
 ### 6.2.5 Restrictions
@@ -1395,11 +1395,11 @@ Keywords `and`, `or`, `not` are preferred over `&&`, `||`, `!` but both are supp
 ```lp
 if age >= 18 and has_license,
     allow_driving().
-.
+..
 
 if not is_empty(list),
     process(list).
-.
+..
 ```
 
 ## 6.6 Bitwise Operators
@@ -1449,12 +1449,12 @@ result = (a + b) * c.
 @ Inclusive range
 for i in 1..10,
     print i.
-.
+..
 
 @ Exclusive end
 for i in 1..<10,
     print i.
-.
+..
 ```
 
 Range types: `Range<T>` where `T` is `Int` or `Char`.
@@ -1481,17 +1481,17 @@ Both forms are equivalent. The block form (comma-based) is preferred for multi-l
 @ Type test (smart cast on success)
 if value is String,
     print value.length.
-.
+..
 
 @ Negated type test
 if value is not Int,
     print "not a number".
-.
+..
 
 @ Identity comparison
 if a is b,
     print "same object".
-.
+..
 ```
 
 `is` for types performs runtime type checking. `is` for values performs reference identity comparison.
@@ -1513,7 +1513,7 @@ Multi-line lambda:
 process = (data) =>,
     cleaned = clean(data).
     return transform(cleaned).
-.
+..
 ```
 
 ## 6.12 Collection Expressions
@@ -1706,7 +1706,7 @@ print "Hello " with name.
 ```lp
 if input boolean "Continue? ",
     process().
-.
+..
 
 greet(input text "Your name : ").
 
@@ -1907,10 +1907,10 @@ return x, y.    @ Multiple return values (tuple)
 repeat 10 times,
     if done,
         break.
-    .
+    ..
     if skip,
         continue.
-    .
+    ..
 ..
 ```
 
@@ -1925,7 +1925,7 @@ A block is a sequence of statements enclosed by `,` and `..`:
     step1().
     step2().
     step3().
-.
+..
 ```
 
 Standalone blocks are rarely used but valid for scoping:
@@ -1935,9 +1935,9 @@ function example(),
     ,
         temp = compute().
         result = transform(temp).
-    .
+    ..
     return result.
-.
+..
 ```
 
 ## 7.8 Empty Blocks
@@ -1972,19 +1972,19 @@ Top-level and block-level declarations:
 ```lp
 function helper(),
     @ ...
-.
+..
 
 type Point,
     x: Float64.
     y: Float64.
-.
+..
 
 enum Direction,
     North.
     South.
     East.
     West.
-.
+..
 ```
 
 ## 7.11 Import Statement
@@ -2014,7 +2014,7 @@ The compiler MUST warn on unreachable statements:
 function example(),
     return 42.
     print "never reached".    @ Warning: unreachable code
-.
+..
 ```
 
 ## 7.14 Labeled Statements
@@ -2064,7 +2064,7 @@ Functions are defined with the `function` keyword:
 ```lp
 function greet(name),
     print "Hello " with name.
-.
+..
 ```
 
 With return type annotation:
@@ -2072,7 +2072,7 @@ With return type annotation:
 ```lp
 function add(a: Int, b: Int) -> Int,
     return a + b.
-.
+..
 ```
 
 With default parameters:
@@ -2080,7 +2080,7 @@ With default parameters:
 ```lp
 function greet(name, greeting = "Hello"),
     print greeting with " " with name.
-.
+..
 ```
 
 With variadic parameters:
@@ -2089,8 +2089,8 @@ With variadic parameters:
 function log(level, ...messages),
     for msg in messages,
         print "[" with level with "] " with msg.
-    .
-.
+    ..
+..
 ```
 
 ## 8.2 Function Signature
@@ -2127,7 +2127,7 @@ Explicit return:
 ```lp
 function square(n: Int) -> Int,
     return n * n.
-.
+..
 ```
 
 Implicit return (last expression):
@@ -2135,7 +2135,7 @@ Implicit return (last expression):
 ```lp
 function square(n: Int) -> Int,
     n * n.    @ v0.2 — implicit return of last expression
-.
+..
 ```
 
 In v0.1, `return` is required for non-void functions.
@@ -2145,7 +2145,7 @@ Multiple return values:
 ```lp
 function divmod(a: Int, b: Int) -> (Int, Int),
     return a // b, a % b.
-.
+..
 
 quotient, remainder = divmod(10, 3).
 ```
@@ -2157,11 +2157,11 @@ Functions MAY be overloaded by parameter types:
 ```lp
 function process(data: String),
     @ handle string
-.
+..
 
 function process(data: List<Int>),
     @ handle list
-.
+..
 ```
 
 The compiler selects the best match at compile time. Ambiguous calls are compile errors.
@@ -2172,9 +2172,9 @@ The compiler selects the best match at compile time. Ambiguous calls are compile
 function first<T>(items: List<T>) -> T?,
     if items.is_empty(),
         return null.
-    .
+    ..
     return items[0].
-.
+..
 ```
 
 ## 8.7 Closures
@@ -2185,8 +2185,8 @@ Functions capture their lexical environment:
 function multiplier(factor),
     return function(n),
         return n * factor.
-    .
-.
+    ..
+..
 
 times3 = multiplier(3).
 print times3(10).    @ 30
@@ -2201,7 +2201,7 @@ Functions are first-class values:
 ```lp
 function apply(fn, value),
     return fn(value).
-.
+..
 
 result = apply((x) => x * 2, 21).
 ```
@@ -2217,8 +2217,8 @@ type Rectangle,
 
     function area() -> Float64,
         return self.width * self.height.
-    .
-.
+    ..
+..
 
 rect = Rectangle(width = 10, height = 5).
 print rect.area().
@@ -2234,8 +2234,8 @@ type MathUtils,
         if value < min, return min.
         if value > max, return max.
         return value.
-    .
-.
+    ..
+..
 
 result = MathUtils.clamp(15, 0, 10).
 ```
@@ -2252,8 +2252,8 @@ type User,
     function init(name, age = 0),
         self.name = name.
         self.age = age.
-    .
-.
+    ..
+..
 
 user = User(name = "Naga", age = 25).
 @ Or positional:
@@ -2266,7 +2266,7 @@ Named-field construction syntax:
 user = User(),
     name = "Naga".
     age = 25.
-.
+..
 ```
 
 ## 8.12 Properties
@@ -2279,12 +2279,12 @@ type Circle,
 
     property diameter -> Float64,
         return self.radius * 2.
-    .
+    ..
 
     property diameter -> Float64 = value,
         self.radius = value / 2.
-    .
-.
+    ..
+..
 ```
 
 ## 8.13 Operator Overloading
@@ -2298,8 +2298,8 @@ type Vector,
 
     function __add__(other: Vector) -> Vector,
         return Vector(x = self.x + other.x, y = self.y + other.y).
-    .
-.
+    ..
+..
 
 v3 = v1 + v2.
 ```
@@ -2325,8 +2325,8 @@ Add methods to existing types without modifying their definition:
 extension String,
     function reversed() -> String,
         return self.chars().reverse().collect().
-    .
-.
+    ..
+..
 
 print "hello".reversed().    @ "olleh"
 ```
@@ -2340,14 +2340,14 @@ Recursion is fully supported. The compiler MAY apply tail-call optimization when
 ```lp
 function factorial(n: Int) -> Int,
     return factorial_helper(n, 1).
-.
+..
 
 function factorial_helper(n: Int, acc: Int) -> Int,
     if n <= 1,
         return acc.
-    .
+    ..
     return factorial_helper(n - 1, acc * n).    @ TCO eligible
-.
+..
 ```
 
 ## 8.16 Function Attributes
@@ -2358,7 +2358,7 @@ Metadata annotations (v0.2):
 @deprecated("Use fetch_v2 instead")
 function fetch(url),
     @ ...
-.
+..
 ```
 
 In v0.1, use comments for deprecation notices.
@@ -2370,7 +2370,7 @@ Performance hint for small functions:
 ```lp
 inline function square(n: Int) -> Int,
     return n * n.
-.
+..
 ```
 
 The compiler MAY inline the function body at call sites. `inline` is a hint, not a guarantee.
@@ -2382,7 +2382,7 @@ The program entry point:
 ```lp
 function main(),
     print "Hello, Lang.P!".
-.
+..
 ```
 
 `main` MUST take no parameters and return `Int` (exit code) or `Void`. If it returns `Int`, that value is the process exit code.
@@ -2390,7 +2390,7 @@ function main(),
 ```lp
 function main() -> Int,
     return 0.
-.
+..
 ```
 
 ---
@@ -2470,7 +2470,7 @@ repeat forever,
     process_events().
     if should_stop,
         break.
-    .
+    ..
 ..
 ```
 
@@ -2481,19 +2481,19 @@ Equivalent to `while true` but reads more naturally for event loops.
 ```lp
 for student in students,
     print student.name.
-.
+..
 
 for i in 0..10,
     print i.
-.
+..
 
 for key, value in dictionary,
     print key with ": " with value.
-.
+..
 
 for item in list,
     print item.
-.
+..
 ```
 
 For-in supports:
@@ -2528,7 +2528,7 @@ match status,
     Status.Active => print "Active".
     Status.Inactive => print "Inactive".
     Status.Pending(reason) => print "Pending: " with reason.
-.
+..
 ```
 
 Basic form in v0.1 uses if-chains; full `match` is planned for v0.2.
@@ -2540,12 +2540,12 @@ Custom types implement iteration:
 ```lp
 interface Iterable<T>,
     function iterator() -> Iterator<T>.
-.
+..
 
 interface Iterator<T>,
     function has_next() -> Bool.
     function next() -> T.
-.
+..
 ```
 
 Example:
@@ -2557,8 +2557,8 @@ type Counter,
 
     function iterator() -> CounterIterator,
         return CounterIterator(counter = self).
-    .
-.
+    ..
+..
 
 @ for n in Counter(max = 5) iterates 0..4
 ```
@@ -2571,13 +2571,13 @@ Early exit pattern (convention, not syntax):
 function process(user),
     if user == null,
         return.
-    .
+    ..
     if not user.is_active,
         return.
-    .
+    ..
     @ main logic here
     do_work(user).
-.
+..
 ```
 
 ## 9.5 Nested Control Flow
@@ -2587,8 +2587,8 @@ for row in matrix,
     for cell in row,
         if cell > 0,
             print cell.
-        .
-    .
+        ..
+    ..
 ..
 ```
 
@@ -2626,12 +2626,12 @@ Conditions MUST evaluate to `Bool`. The compiler MUST NOT allow implicit truthin
 @ Error in Lang.P — no implicit truthiness
 if name,
     print name.
-.
+..
 
 @ Correct
 if name != null and name != "",
     print name.
-.
+..
 ```
 
 This prevents common beginner bugs found in Python and JavaScript.
@@ -2663,7 +2663,7 @@ type User,
     name: String.
     age: Int.
     email: String? = null.
-.
+..
 ```
 
 Fields are declared with optional type annotations and default values. Fields without defaults MUST be set in the constructor.
@@ -2683,7 +2683,7 @@ user = User(),
     name = "Naga".
     age = 25.
     email = "naga@example.com".
-.
+..
 ```
 
 ### 10.2.3 Default Construction
@@ -2715,8 +2715,8 @@ type User,
     function init(name, age = 0),
         self.name = name.
         self.age = age.
-    .
-.
+    ..
+..
 ```
 
 Multiple constructors via overloading:
@@ -2724,7 +2724,7 @@ Multiple constructors via overloading:
 ```lp
 function init(name),
     self.init(name, 0).
-.
+..
 ```
 
 ## 10.5 Inheritance
@@ -2737,16 +2737,16 @@ type Animal,
 
     function speak(),
         print "...".
-    .
-.
+    ..
+..
 
 type Dog extends Animal,
     breed: String.
 
     function speak(),
         print "Woof!".
-    .
-.
+    ..
+..
 
 dog = Dog(name = "Buddy", breed = "Labrador").
 dog.speak().    @ "Woof!"
@@ -2763,8 +2763,8 @@ type Dog extends Animal,
     function init(name, breed),
         super.init(name).
         self.breed = breed.
-    .
-.
+    ..
+..
 ```
 
 ## 10.6 Interfaces
@@ -2775,12 +2775,12 @@ Interface definition:
 interface Drawable,
     function draw() -> Void.
     function bounds() -> (Int, Int, Int, Int).
-.
+..
 
 interface Serializable,
     function serialize() -> String.
     function deserialize(data: String) -> Void.
-.
+..
 ```
 
 Implementation is implicit (structural):
@@ -2794,12 +2794,12 @@ type Rectangle,
 
     function draw(),
         @ render rectangle
-    .
+    ..
 
     function bounds(),
         return (self.x, self.y, self.width, self.height).
-    .
-.
+    ..
+..
 
 @ Rectangle satisfies Drawable structurally — no explicit 'implements' needed
 ```
@@ -2809,7 +2809,7 @@ Explicit implementation for clarity in public APIs:
 ```lp
 type Rectangle implements Drawable, Serializable,
     @ ...
-.
+..
 ```
 
 ## 10.7 Polymorphism
@@ -2817,7 +2817,7 @@ type Rectangle implements Drawable, Serializable,
 ```lp
 function render(item: Drawable),
     item.draw().
-.
+..
 
 rect = Rectangle(x = 0, y = 0, width = 100, height = 50).
 render(rect).
@@ -2837,13 +2837,13 @@ type BankAccount,
     public function deposit(amount: Float64),
         if amount > 0,
             self.balance += amount.
-        .
-    .
+        ..
+    ..
 
     public function get_balance() -> Float64,
         return self.balance.
-    .
-.
+    ..
+..
 ```
 
 | Modifier | Accessible from |
@@ -2861,10 +2861,10 @@ type Config,
     static function get() -> Config,
         if self.instance == null,
             self.instance = Config().
-        .
+        ..
         return self.instance.
-    .
-.
+    ..
+..
 ```
 
 Static fields and methods belong to the type, not instances. Access via `TypeName.member`.
@@ -2879,20 +2879,20 @@ type Temperature,
 
     property celsius -> Float64,
         return self._celsius.
-    .
+    ..
 
     property celsius -> Float64 = value,
         self._celsius = value.
-    .
+    ..
 
     property fahrenheit -> Float64,
         return self._celsius * 9.0 / 5.0 + 32.0.
-    .
+    ..
 
     property fahrenheit -> Float64 = value,
         self._celsius = (value - 32.0) * 5.0 / 9.0.
-    .
-.
+    ..
+..
 ```
 
 ## 10.11 Abstract Types
@@ -2903,19 +2903,19 @@ Cannot be instantiated directly; must be extended:
 abstract type Shape,
     abstract function area() -> Float64.
     abstract function perimeter() -> Float64.
-.
+..
 
 type Circle extends Shape,
     radius: Float64.
 
     function area() -> Float64,
         return 3.14159 * self.radius ** 2.
-    .
+    ..
 
     function perimeter() -> Float64,
         return 2.0 * 3.14159 * self.radius.
-    .
-.
+    ..
+..
 ```
 
 ## 10.12 Generics
@@ -2926,12 +2926,12 @@ type Box<T>,
 
     function get() -> T,
         return self.value.
-    .
+    ..
 
     function set(value: T),
         self.value = value.
-    .
-.
+    ..
+..
 
 int_box = Box<Int>(value = 42).
 str_box = Box<String>(value = "hello").
@@ -2946,8 +2946,8 @@ type SortedList<T: Comparable>,
     function add(item: T),
         self.items.add(item).
         self.items.sort().
-    .
-.
+    ..
+..
 ```
 
 ## 10.13 Operator Overloading
@@ -2982,8 +2982,8 @@ type FileHandle,
 
     function destroy(),
         close_native(self._handle).
-    .
-.
+    ..
+..
 ```
 
 Deterministic cleanup uses `try`/`finally` or the `using` statement (v0.2).
@@ -2994,17 +2994,17 @@ Deterministic cleanup uses `try`/`finally` or the `using` statement (v0.2).
 enum Result<T, E>,
     Ok(value: T).
     Err(error: E).
-.
+..
 
 enum Option<T>,
     Some(value: T).
     None.
-.
+..
 
 result = Result.Ok(42).
 if result is Result.Ok,
     print result.value.
-.
+..
 ```
 
 ## 10.18 The Root Object Type
@@ -3017,7 +3017,7 @@ type Object,
     function to_string() -> String.
     function hash() -> Int.
     function equals(other: Object) -> Bool.
-.
+..
 ```
 
 Every value can be converted to `Object`.
@@ -3093,7 +3093,7 @@ use json.
 
 function json(),    @ Local function shadows module
     return "custom".
-.
+..
 
 print json().    @ Calls local function, not module
 ```
@@ -3239,16 +3239,16 @@ Examples:
 ```lp
 on button.clicked,
     print "Button clicked".
-.
+..
 
 on Browser.Start,
     print "Browser started".
-.
+..
 
 on server.request,
     response = handle(server.request).
     server.respond(response).
-.
+..
 ```
 
 ## 12.3 Event Sources
@@ -3277,7 +3277,7 @@ on server.request,
     method = server.request.method.
     body = server.request.body.
     print method with " " with path.
-.
+..
 ```
 
 The event source expression provides the context object. In the handler scope, the event source is bound to its current value.
@@ -3289,11 +3289,11 @@ Multiple handlers MAY be registered for the same event:
 ```lp
 on button.clicked,
     print "Handler 1".
-.
+..
 
 on button.clicked,
     print "Handler 2".
-.
+..
 ```
 
 Handlers execute in registration order unless priority is specified (v0.2).
@@ -3310,12 +3310,12 @@ type DownloadManager,
 
     function finish(),
         self.completed.emit(file = self.current_file).
-    .
-.
+    ..
+..
 
 on download.completed,
     print "Downloaded: " with download.completed.file.
-.
+..
 ```
 
 ### 12.6.1 Event Declaration
@@ -3324,7 +3324,7 @@ on download.completed,
 type MyWidget,
     event clicked(x: Int, y: Int).
     event value_changed(old: Int, new: Int).
-.
+..
 ```
 
 ### 12.6.2 Event Emission
@@ -3345,7 +3345,7 @@ Handlers run synchronously by default. Async handlers use `wait for`:
 on button.clicked,
     data = wait for fetch(url).
     update_ui(data).
-.
+..
 ```
 
 ## 12.8 Removing Handlers
@@ -3355,7 +3355,7 @@ Handlers are automatically removed when their scope is destroyed. Explicit remov
 ```lp
 handler = on button.clicked,
     print "Clicked".
-.
+..
 
 @ Later:
 handler.disconnect().
@@ -3370,12 +3370,12 @@ UI events support bubbling (v0.2):
 ```lp
 on parent.clicked,
     print "Parent clicked".
-.
+..
 
 on child.clicked,
     print "Child clicked".
     @ Event bubbles to parent by default
-.
+..
 ```
 
 Use `event.stop()` to prevent propagation (v0.2).
@@ -3387,15 +3387,15 @@ Browser and UI events from the Navigator framework:
 ```lp
 on browser.tab_changed,
     print "Active tab: " with browser.tab_changed.url.
-.
+..
 
 on browser.navigation,
     print "Navigating to: " with browser.navigation.url.
-.
+..
 
 on browser.download_started,
     print "Downloading: " with browser.download_started.filename.
-.
+..
 ```
 
 See [Chapter 17](17-navigator.md) for the complete event catalog.
@@ -3406,15 +3406,15 @@ See [Chapter 17](17-navigator.md) for the complete event catalog.
 on user.message,
     reply = assistant.chat(user.message).
     print reply.
-.
+..
 
 on assistant.response,
     display(assistant.response.text).
-.
+..
 
 on assistant.error,
     print "AI Error: " with assistant.error.message.
-.
+..
 ```
 
 See [Chapter 18](18-ai-framework.md).
@@ -3431,7 +3431,7 @@ on server.request,
     catch error,
         server.respond(error_response(500, error.message)).
     ..
-.
+..
 ```
 
 ## 12.13 Event Loop Integration
@@ -3444,7 +3444,7 @@ browser = Browser(name = "Nova").
 
 on Browser.Start,
     print "Welcome".
-.
+..
 
 @ Event loop runs until browser is closed
 ```
@@ -3525,7 +3525,7 @@ catch error,
 finally,
     if file != null,
         file.close().
-    .
+    ..
 ..
 ```
 
@@ -3537,9 +3537,9 @@ Raise errors with `throw`:
 function divide(a, b),
     if b == 0,
         throw DivisionError("Cannot divide by zero").
-    .
+    ..
     return a / b.
-.
+..
 ```
 
 ## 13.4 Error Types
@@ -3576,8 +3576,8 @@ type ValidationError extends Error,
     function init(field, message),
         super.init(message).
         self.field = field.
-    .
-.
+    ..
+..
 
 throw ValidationError(field = "email", message = "Invalid email format").
 ```
@@ -3591,7 +3591,7 @@ interface Error,
     property message -> String.
     property cause -> Error?.
     property stack_trace -> StackTrace.
-.
+..
 ```
 
 Access:
@@ -3611,7 +3611,7 @@ For recoverable errors without exceptions:
 enum Result<T, E>,
     Ok(value: T).
     Err(error: E).
-.
+..
 
 function parse_number(text: String) -> Result<Float64, ParseError>,
     try,
@@ -3619,7 +3619,7 @@ function parse_number(text: String) -> Result<Float64, ParseError>,
     catch error: ParseError,
         return Result.Err(error).
     ..
-.
+..
 ```
 
 Both patterns coexist. Guidelines:
@@ -3656,7 +3656,7 @@ Automatic propagation with `?` operator (v0.2):
 function load_config() -> Config,
     text = read_file("config.json")?.    @ Propagates error if read fails
     return json.parse(text)?.            @ Propagates error if parse fails
-.
+..
 ```
 
 In v0.1, use explicit try/catch or Result types.
@@ -3717,7 +3717,7 @@ function process_file(path),
     defer file.close().
     @ file.close() runs when function exits, regardless of how
     process(file).
-.
+..
 ```
 
 In v0.1, use try/finally.
@@ -3746,7 +3746,7 @@ Functions that perform async operations are marked with `async`:
 async function fetch_data(url),
     response = wait for get url.
     return response.body.
-.
+..
 ```
 
 Calling an async function without `wait for` returns a `Task<T>`:
@@ -3776,7 +3776,7 @@ use network.
 async function fetch_user(id),
     response = wait for get ("https://api.example.com/users/" with id).
     return json.parse(response.body).
-.
+..
 
 user = wait for fetch_user(42).
 ```
@@ -3820,7 +3820,7 @@ Event handlers can await without blocking the event loop:
 on button.clicked,
     data = wait for fetch(url).
     update_display(data).
-.
+..
 ```
 
 ## 14.7 Synchronization Primitives
@@ -3834,7 +3834,7 @@ try,
     shared_data += 1.
 finally,
     lock.release().
-.
+..
 ```
 
 Scoped lock (v0.2):
@@ -3842,7 +3842,7 @@ Scoped lock (v0.2):
 ```lp
 with lock,
     shared_data += 1.
-.
+..
 ```
 
 ### 14.7.2 Channel
@@ -3854,9 +3854,9 @@ channel = Channel<Int>(capacity = 100).
 spawn,
     for i in 0..100,
         channel.send(i).
-    .
+    ..
     channel.close().
-.
+..
 
 @ Consumer
 while true,
@@ -3907,7 +3907,7 @@ wait for sleep(seconds = 1.5).
 timer = Timer(interval = 1000).
 on timer.elapsed,
     print "Tick".
-.
+..
 timer.start().
 ```
 
@@ -3916,7 +3916,7 @@ timer.start().
 ```lp
 results = parallel for item in items,
     wait for process(item).
-.
+..
 ```
 
 Results maintain input order.
@@ -3928,12 +3928,12 @@ async function data_stream() -> AsyncStream<Int>,
     for i in 0..100,
         yield i.
         wait for sleep(seconds = 0.1).
-    .
-.
+    ..
+..
 
 async for value in data_stream(),
     print value.
-.
+..
 ```
 
 ## 14.13 Error Handling in Async Code
@@ -3948,7 +3948,7 @@ async function fetch_safe(url),
         print "Network error: " with error.message.
         return null.
     ..
-.
+..
 ```
 
 Uncaught errors in spawned tasks are reported to the async runtime error handler.
@@ -3962,10 +3962,10 @@ async function long_task(cancel: CancellationToken),
     repeat forever,
         if cancel.is_cancelled(),
             return.
-        .
+        ..
         wait for do_step().
     ..
-.
+..
 ```
 
 ## 14.15 Performance Guidelines
@@ -4050,7 +4050,7 @@ absolute = path.resolve("../config.json").
 watcher = watch "config.json".
 on watcher.changed,
     reload_config().
-.
+..
 ```
 
 ## 15.2 Standard I/O
@@ -4122,7 +4122,7 @@ response = get url,
     headers = {"Authorization": "Bearer " with token}.
     timeout = 30.
     follow_redirects = true.
-.
+..
 ```
 
 ### 15.3.2 Response Object
@@ -4149,14 +4149,14 @@ use network.
 
 function handle(request),
     return response(200, body = "Hello").
-.
+..
 
 server = Server(port = 8080).
 
 on server.request,
     reply = handle(server.request).
     server.respond(reply).
-.
+..
 
 server.start().
 print "Listening on port 8080".
@@ -4169,12 +4169,12 @@ server = Server(port = 8080).
 
 on server.request where server.request.path == "/",
     server.respond(response(200, body = "Home")).
-.
+..
 
 on server.request where server.request.path == "/api/users",
     users = get_users().
     server.respond(json_response(users)).
-.
+..
 ```
 
 ## 15.5 WebSocket
@@ -4186,11 +4186,11 @@ socket = WebSocket("wss://echo.example.com").
 
 on socket.message,
     print "Received: " with socket.message.data.
-.
+..
 
 on socket.connected,
     socket.send("Hello").
-.
+..
 
 socket.connect().
 ```
@@ -4202,7 +4202,7 @@ socket.connect().
 listener = TcpListener.bind("0.0.0.0:8080").
 on listener.connection,
     handle_connection(listener.connection).
-.
+..
 
 @ UDP
 socket = UdpSocket.bind("0.0.0.0:9000").
@@ -4250,7 +4250,7 @@ while true,
     chunk = stream.read(4096).
     if chunk.is_empty(), break.
     process(chunk).
-.
+..
 stream.close().
 ```
 
@@ -4259,7 +4259,7 @@ Async streaming:
 ```lp
 async for chunk in async_read_stream("large_file.dat"),
     wait for process(chunk).
-.
+..
 ```
 
 ## 15.11 Compression
@@ -4281,7 +4281,7 @@ response = get url,
         verify = true.
         ca_cert = read "ca.pem".
     ).
-.
+..
 ```
 
 ## 15.13 URL Handling
@@ -4450,13 +4450,13 @@ use testing.
 
 test "addition works",
     assert add(2, 3) == 5.
-.
+..
 
 test "division by zero throws",
     assert_throws(DivisionError, function(),
         divide(1, 0).
     ).
-.
+..
 
 @ Run with: lang test
 testing.run().
@@ -4626,7 +4626,7 @@ use navigator.
 browser = Browser(),
     name = "Nova".
     homepage = "https://google.com".
-.
+..
 
 @ Browser event loop starts automatically
 ```
@@ -4652,7 +4652,7 @@ browser = Browser(),
     javascript = enabled.
     images = enabled.
     cookies = enabled.
-.
+..
 ```
 
 ### 17.3.3 Configuration Options
@@ -4680,37 +4680,37 @@ browser = Browser(),
 ```lp
 on Browser.Start,
     print "Browser started".
-.
+..
 
 on Browser.Close,
     print "Browser closed".
     save_session().
-.
+..
 
 on browser.navigation,
     url = browser.navigation.url.
     print "Navigating to: " with url.
-.
+..
 
 on browser.tab_changed,
     print "Active tab: " with browser.tab_changed.title.
-.
+..
 
 on browser.download_started,
     print "Downloading: " with browser.download_started.filename.
-.
+..
 
 on browser.download_completed,
     print "Download complete: " with browser.download_completed.path.
-.
+..
 
 on browser.title_changed,
     @ Update window title
-.
+..
 
 on browser.page_loaded,
     print "Page loaded: " with browser.page_loaded.url.
-.
+..
 ```
 
 ## 17.5 Browser API
@@ -4766,7 +4766,7 @@ button = toolbar.add_button(
 
 on button.clicked,
     browser.add_bookmark(browser.current_title, browser.current_url).
-.
+..
 
 @ Custom sidebar panel
 sidebar = browser.sidebar(width = 300).
@@ -4797,7 +4797,7 @@ my_theme = Theme(),
     tab_inactive = "#1a1a2e".
     font = "Inter".
     font_size = 14.
-.
+..
 
 browser = Browser(), theme = my_theme.
 ```
@@ -4814,8 +4814,8 @@ type AdBlocker extends Extension,
         browser.execute_js("""
             document.querySelectorAll('[class*="ad"]').forEach(el => el.remove());
         """).
-    .
-.
+    ..
+..
 
 browser.install_extension(AdBlocker()).
 ```
@@ -4859,12 +4859,12 @@ browser = Browser(),
     tabs = enabled.
     @ Enable the bookmarks bar below the address bar.
     bookmarks = enabled.
-.
+..
 
 @ This event fires when the browser finishes starting up.
 on Browser.Start,
     print "Welcome to Nova Browser!".
-.
+..
 ```
 
 ## 17.10 Architecture
@@ -4899,7 +4899,7 @@ app = Application(),
     name = "My App".
     width = 800.
     height = 600.
-.
+..
 
 window = app.window().
 window.add(Button(text = "Click Me")).
@@ -4907,7 +4907,7 @@ window.add(TextLabel(text = "Hello, Lang.P!")).
 
 on app.start,
     window.show().
-.
+..
 ```
 
 UI components: `Button`, `TextLabel`, `TextInput`, `Checkbox`, `Dropdown`, `ListView`, `Canvas`, `MenuBar`, `Dialog`.
@@ -4951,12 +4951,12 @@ assistant = Assistant(),
     provider = Groq.
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
-.
+..
 
 on user.message,
     reply = assistant.chat(user.message).
     print reply.
-.
+..
 ```
 
 ### 18.3.2 Full Configuration
@@ -4972,7 +4972,7 @@ assistant = Assistant(),
     streaming = enabled.
     memory = enabled.
     tools = [search_web, run_code, read_file].
-.
+..
 ```
 
 ## 18.4 Supported Providers
@@ -4993,14 +4993,14 @@ Switching providers requires changing only the provider and model:
 assistant = Assistant(),
     provider = Ollama.
     model = llama3.
-.
+..
 
 @ Production — Groq
 assistant = Assistant(),
     provider = Groq.
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
-.
+..
 ```
 
 ## 18.5 Chat
@@ -5030,9 +5030,9 @@ on user.message,
     stream = assistant.stream(user.message).
     async for chunk in stream,
         print inline chunk.
-    .
+    ..
     print "".
-.
+..
 ```
 
 ## 18.6 Tool Calling
@@ -5044,19 +5044,19 @@ Define tools that the AI can invoke:
 function search_web(query: String) -> String,
     results = wait for get ("https://search.example.com?q=" with query).
     return results.body.
-.
+..
 
 function run_code(code: String) -> String,
     result = execute_sandbox(code).
     return result.output.
-.
+..
 
 assistant = Assistant(),
     provider = OpenAI.
     api_key = env.OPENAI_API_KEY.
     model = gpt-4o.
     tools = [search_web, run_code].
-.
+..
 
 @ The assistant automatically calls tools when needed
 reply = assistant.chat("Search for the latest Lang.P news and summarize").
@@ -5069,7 +5069,7 @@ tool get_weather,
     description = "Get current weather for a city".
     parameter city: String, description = "City name".
     return fetch_weather(city).
-.
+..
 ```
 
 ## 18.7 Agents
@@ -5082,7 +5082,7 @@ agent = Agent(),
     goal = "Research and write a summary about quantum computing".
     max_steps = 10.
     tools = [search_web, read_page, write_file].
-.
+..
 
 result = wait for agent.run().
 print result.summary.
@@ -5102,7 +5102,7 @@ use ai.
 embeddings = Embeddings(),
     provider = OpenAI.
     model = text-embedding-3-small.
-.
+..
 
 vector = embeddings.embed("Hello, world").
 vectors = embeddings.embed_batch(["text1", "text2"]).
@@ -5117,7 +5117,7 @@ use ai.
 @ Build a knowledge base
 kb = KnowledgeBase(),
     embeddings = embeddings.
-.
+..
 
 kb.add_document("manual.pdf").
 kb.add_text("Lang.P is a readable programming language.").
@@ -5129,7 +5129,7 @@ assistant = Assistant(),
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
     knowledge = kb.
-.
+..
 
 reply = assistant.chat("How do I create a browser in Lang.P?").
 @ Response is grounded in the knowledge base
@@ -5147,8 +5147,8 @@ assistant = Assistant(),
         type = persistent.
         storage = "memory.db".
         max_entries = 1000.
-.
-.
+..
+..
 
 @ The assistant remembers past conversations
 reply = assistant.chat("What did we discuss yesterday?").
@@ -5175,13 +5175,13 @@ mcp = MCPClient(),
         "filesystem": "npx @modelcontextprotocol/server-filesystem /path".
         "github": "npx @modelcontextprotocol/server-github".
     ].
-.
+..
 
 assistant = Assistant(),
     provider = Anthropic.
     model = claude-sonnet-4.
     mcp = mcp.
-.
+..
 
 @ Assistant can use MCP tools (file access, GitHub, etc.)
 reply = assistant.chat("List the files in my project and create a README").
@@ -5192,27 +5192,27 @@ reply = assistant.chat("List the files in my project and create a README").
 ```lp
 on user.message,
     @ Fires when user sends a message
-.
+..
 
 on assistant.response,
     @ Fires when assistant completes a response
     print assistant.response.text.
-.
+..
 
 on assistant.stream_chunk,
     @ Fires for each streaming chunk
     print inline assistant.stream_chunk.text.
-.
+..
 
 on assistant.tool_call,
     @ Fires when assistant invokes a tool
     print "Calling: " with assistant.tool_call.name.
-.
+..
 
 on assistant.error,
     @ Fires on API or processing errors
     print "Error: " with assistant.error.message.
-.
+..
 ```
 
 ## 18.13 Structured Output
@@ -5222,7 +5222,7 @@ type Analysis = ,
     summary: String.
     sentiment: String.
     keywords: List<String>.
-.
+..
 
 result = assistant.structured("Analyze this text: " with text, type = Analysis).
 print result.summary.
@@ -5770,7 +5770,7 @@ database = { version = "1.0", features = ["postgres", "sqlite"] }
 @ Code conditional on features
 when feature("postgres"),
     use database.postgres.
-.
+..
 ```
 
 ---
@@ -6108,7 +6108,7 @@ Doc comment syntax:
 @   print user.name.
 function create_user(name: String, age: Int) -> User,
     @ ...
-.
+..
 ```
 
 ## 21.11 Continuous Integration
@@ -6269,7 +6269,7 @@ v1.0.0  — function removed (compile error)
 @deprecated("Use fetch_v2 instead. Will be removed in v1.0.0.")
 function fetch(url),
     return fetch_v2(url).
-.
+..
 ```
 
 The compiler MUST emit:

@@ -9,18 +9,18 @@ assistant = Assistant(),
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
     system_prompt = "You are a helpful assistant for the Lang.P programming language.".
-.
+..
 
 @ Respond when the user sends a message.
 on user.message,
     reply = assistant.chat(user.message).
     print reply.
-.
+..
 
 @ Handle errors from the AI provider gracefully.
 on assistant.error,
     print "AI Error: " with assistant.error.message.
-.
+..
 
 @ Send an initial greeting to demonstrate the assistant.
 reply = assistant.chat("What is Lang.P?").

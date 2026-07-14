@@ -1,5 +1,7 @@
 # Chapter 15 — I/O & Network
 
+> **Implemented today (v0.1):** File read/write/copy/move/delete work in the interpreter. HTTP, WebSocket, and server APIs in this chapter are **specification only**. See [16 — File System](../manual/16-filesystem.md) and [17 — Networking](../manual/17-networking.md) in the manual.
+
 ## 15.1 Filesystem
 
 Lang.P provides natural-language-style file I/O.
@@ -71,7 +73,7 @@ absolute = path.resolve("../config.json").
 watcher = watch "config.json".
 on watcher.changed,
     reload_config().
-.
+..
 ```
 
 ## 15.2 Standard I/O
@@ -143,7 +145,7 @@ response = get url,
     headers = {"Authorization": "Bearer " with token}.
     timeout = 30.
     follow_redirects = true.
-.
+..
 ```
 
 ### 15.3.2 Response Object
@@ -170,14 +172,14 @@ use network.
 
 function handle(request),
     return response(200, body = "Hello").
-.
+..
 
 server = Server(port = 8080).
 
 on server.request,
     reply = handle(server.request).
     server.respond(reply).
-.
+..
 
 server.start().
 print "Listening on port 8080".
@@ -190,12 +192,12 @@ server = Server(port = 8080).
 
 on server.request where server.request.path == "/",
     server.respond(response(200, body = "Home")).
-.
+..
 
 on server.request where server.request.path == "/api/users",
     users = get_users().
     server.respond(json_response(users)).
-.
+..
 ```
 
 ## 15.5 WebSocket
@@ -207,11 +209,11 @@ socket = WebSocket("wss://echo.example.com").
 
 on socket.message,
     print "Received: " with socket.message.data.
-.
+..
 
 on socket.connected,
     socket.send("Hello").
-.
+..
 
 socket.connect().
 ```
@@ -223,7 +225,7 @@ socket.connect().
 listener = TcpListener.bind("0.0.0.0:8080").
 on listener.connection,
     handle_connection(listener.connection).
-.
+..
 
 @ UDP
 socket = UdpSocket.bind("0.0.0.0:9000").
@@ -271,7 +273,7 @@ while true,
     chunk = stream.read(4096).
     if chunk.is_empty(), break.
     process(chunk).
-.
+..
 stream.close().
 ```
 
@@ -280,7 +282,7 @@ Async streaming:
 ```lp
 async for chunk in async_read_stream("large_file.dat"),
     wait for process(chunk).
-.
+..
 ```
 
 ## 15.11 Compression
@@ -302,7 +304,7 @@ response = get url,
         verify = true.
         ca_cert = read "ca.pem".
     ).
-.
+..
 ```
 
 ## 15.13 URL Handling

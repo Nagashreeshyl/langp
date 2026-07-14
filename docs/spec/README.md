@@ -6,6 +6,10 @@
 
 This directory contains the authoritative specification for the Lang.P programming language. Implementations of `langc`, the runtime, standard library, and tooling **must** conform to this document.
 
+> **Grammar Freeze v1.0:** [GRAMMAR-FREEZE-v1.md](GRAMMAR-FREEZE-v1.md) is the single source of truth for surface syntax. Supporting docs: [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md), [LANGUAGE-PHILOSOPHY.md](LANGUAGE-PHILOSOPHY.md), [KEYWORDS.md](KEYWORDS.md).
+
+> **New readers:** Start with the [Lang.P Manual](../manual/README.md) for a beginner-friendly guide with **Implemented (v0.1)** vs **Specification** badges. Use [Language Reference v0.1](../guides/LANGUAGE-REFERENCE.md) for a quick list of working commands.
+
 ## How to Read This Spec
 
 The specification is organized into chapters. Each chapter is self-contained but cross-referenced. Normative keywords use [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119) semantics:
@@ -43,6 +47,10 @@ Code examples marked `Example` are illustrative. Code marked `Conformance` are r
 | 21 | [Tooling](21-tooling.md) | `langc`, Lang LSP, Lang Studio, input quick-fixes |
 | 22 | [Compatibility & Versioning](22-compatibility-versioning.md) | Semver, deprecation policy |
 | — | [Glossary](glossary.md) | Term definitions |
+| — | **[Grammar Freeze v1.0](GRAMMAR-FREEZE-v1.md)** | **Frozen surface syntax (SSOT)** |
+| — | [Design Decisions](DESIGN-DECISIONS.md) | Rationale for syntax choices |
+| — | [Language Philosophy](LANGUAGE-PHILOSOPHY.md) | Design principles |
+| — | [Keywords](KEYWORDS.md) | Reserved words reference |
 
 ## Single-Document View
 

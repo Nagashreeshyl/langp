@@ -1,5 +1,7 @@
 # Chapter 13 — Error Handling
 
+> **Implementation note (v0.1):** Basic `try` / `catch` / `finally` / `throw` work in the interpreter. Advanced error types and propagation operators are specification. See [14 — Error Handling (manual)](../manual/14-error-handling.md).
+
 ## 13.1 Overview
 
 Lang.P uses structured exception handling with `try`, `catch`, and `finally` blocks. Error handling reads as natural instructions.
@@ -64,7 +66,7 @@ catch error,
 finally,
     if file != null,
         file.close().
-    .
+    ..
 ..
 ```
 
@@ -76,9 +78,9 @@ Raise errors with `throw`:
 function divide(a, b),
     if b == 0,
         throw DivisionError("Cannot divide by zero").
-    .
+    ..
     return a / b.
-.
+..
 ```
 
 ## 13.4 Error Types
@@ -115,8 +117,8 @@ type ValidationError extends Error,
     function init(field, message),
         super.init(message).
         self.field = field.
-    .
-.
+    ..
+..
 
 throw ValidationError(field = "email", message = "Invalid email format").
 ```
@@ -130,7 +132,7 @@ interface Error,
     property message -> String.
     property cause -> Error?.
     property stack_trace -> StackTrace.
-.
+..
 ```
 
 Access:
@@ -150,7 +152,7 @@ For recoverable errors without exceptions:
 enum Result<T, E>,
     Ok(value: T).
     Err(error: E).
-.
+..
 
 function parse_number(text: String) -> Result<Float64, ParseError>,
     try,
@@ -158,7 +160,7 @@ function parse_number(text: String) -> Result<Float64, ParseError>,
     catch error: ParseError,
         return Result.Err(error).
     ..
-.
+..
 ```
 
 Both patterns coexist. Guidelines:
@@ -195,7 +197,7 @@ Automatic propagation with `?` operator (v0.2):
 function load_config() -> Config,
     text = read_file("config.json")?.    @ Propagates error if read fails
     return json.parse(text)?.            @ Propagates error if parse fails
-.
+..
 ```
 
 In v0.1, use explicit try/catch or Result types.
@@ -256,7 +258,7 @@ function process_file(path),
     defer file.close().
     @ file.close() runs when function exits, regardless of how
     process(file).
-.
+..
 ```
 
 In v0.1, use try/finally.

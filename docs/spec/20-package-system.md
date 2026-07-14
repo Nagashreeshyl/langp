@@ -237,5 +237,5 @@ database = { version = "1.0", features = ["postgres", "sqlite"] }
 @ Code conditional on features
 when feature("postgres"),
     use database.postgres.
-.
+..
 ```

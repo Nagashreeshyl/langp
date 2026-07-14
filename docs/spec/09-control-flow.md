@@ -73,7 +73,7 @@ repeat forever,
     process_events().
     if should_stop,
         break.
-    .
+    ..
 ..
 ```
 
@@ -84,19 +84,19 @@ Equivalent to `while true` but reads more naturally for event loops.
 ```lp
 for student in students,
     print student.name.
-.
+..
 
 for i in 0..10,
     print i.
-.
+..
 
 for key, value in dictionary,
     print key with ": " with value.
-.
+..
 
 for item in list,
     print item.
-.
+..
 ```
 
 For-in supports:
@@ -131,7 +131,7 @@ match status,
     Status.Active => print "Active".
     Status.Inactive => print "Inactive".
     Status.Pending(reason) => print "Pending: " with reason.
-.
+..
 ```
 
 Basic form in v0.1 uses if-chains; full `match` is planned for v0.2.
@@ -143,12 +143,12 @@ Custom types implement iteration:
 ```lp
 interface Iterable<T>,
     function iterator() -> Iterator<T>.
-.
+..
 
 interface Iterator<T>,
     function has_next() -> Bool.
     function next() -> T.
-.
+..
 ```
 
 Example:
@@ -160,8 +160,8 @@ type Counter,
 
     function iterator() -> CounterIterator,
         return CounterIterator(counter = self).
-    .
-.
+    ..
+..
 
 @ for n in Counter(max = 5) iterates 0..4
 ```
@@ -174,13 +174,13 @@ Early exit pattern (convention, not syntax):
 function process(user),
     if user == null,
         return.
-    .
+    ..
     if not user.is_active,
         return.
-    .
+    ..
     @ main logic here
     do_work(user).
-.
+..
 ```
 
 ## 9.5 Nested Control Flow
@@ -190,8 +190,8 @@ for row in matrix,
     for cell in row,
         if cell > 0,
             print cell.
-        .
-    .
+        ..
+    ..
 ..
 ```
 
@@ -229,12 +229,12 @@ Conditions MUST evaluate to `Bool`. The compiler MUST NOT allow implicit truthin
 @ Error in Lang.P — no implicit truthiness
 if name,
     print name.
-.
+..
 
 @ Correct
 if name != null and name != "",
     print name.
-.
+..
 ```
 
 This prevents common beginner bugs found in Python and JavaScript.

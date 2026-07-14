@@ -24,7 +24,7 @@ run_app().
 function main(),
     print "Starting application".
     run_app().
-.
+..
 
 @ langc invokes main() automatically if present
 ```
@@ -54,11 +54,11 @@ API_URL = "https://api.example.com".
 type Config,
     host.
     port.
-.
+..
 
 function load_config() -> Config,
     @ ...
-.
+..
 
 config = load_config().
 ```
@@ -111,13 +111,13 @@ private helper_cache = {}.
 
 public function fetch(url),
     @ ...
-.
+..
 
 type User,
     public name.
     internal id.
     private password_hash.
-.
+..
 ```
 
 ## 3.7 Namespaces

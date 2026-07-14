@@ -146,13 +146,13 @@ use testing.
 
 test "addition works",
     assert add(2, 3) == 5.
-.
+..
 
 test "division by zero throws",
     assert_throws(DivisionError, function(),
         divide(1, 0).
     ).
-.
+..
 
 @ Run with: lang test
 testing.run().

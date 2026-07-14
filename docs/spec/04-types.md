@@ -109,7 +109,7 @@ Defined with the `type` keyword. See [Chapter 10](10-object-model.md).
 type User,
     name: String.
     age: Int.
-.
+..
 ```
 
 ### 4.4.2 Enum
@@ -119,13 +119,13 @@ enum Color,
     Red.
     Green.
     Blue.
-.
+..
 
 enum Status,
     Active(value: Int).
     Inactive.
     Pending(reason: String).
-.
+..
 ```
 
 Enums with associated values support pattern matching.
@@ -136,7 +136,7 @@ Enums with associated values support pattern matching.
 interface Drawable,
     function draw() -> Void.
     function bounds() -> (Int, Int, Int, Int).
-.
+..
 ```
 
 ### 4.4.4 Type Alias
@@ -159,7 +159,7 @@ function Type ::= "function" "(" ParamTypeList? ")" "->" Type
 @ Type: function(Int, Int) -> Int
 add: function(Int, Int) -> Int = function(a, b),
     return a + b.
-.
+..
 
 result = add(3, 4).
 ```
@@ -174,8 +174,8 @@ type Box<T>,
 
     function get() -> T,
         return self.value.
-    .
-.
+    ..
+..
 
 box = Box<Int>(value = 42).
 ```
@@ -185,7 +185,7 @@ Generic constraints:
 ```lp
 type Container<T: Comparable>,
     items: List<T>.
-.
+..
 ```
 
 Multiple constraints: `T: Comparable & Serializable`.
@@ -200,7 +200,7 @@ Any type `T` can be made nullable as `T?`, allowing `null`:
 name: String? = null.
 if name != null,
     print name.    @ Smart cast: name is String here
-.
+..
 ```
 
 ### 4.7.2 Optional (`Optional<T>`)
@@ -210,7 +210,7 @@ Explicit optional type, equivalent to `T?` but used in API signatures for clarit
 ```lp
 function find_user(id: Int) -> Optional<User>,
     @ returns null if not found
-.
+..
 ```
 
 The `?` suffix is syntactic sugar for `Optional<T>`.
@@ -243,7 +243,7 @@ items: List<String> = [].
 @ Parameters MUST be inferrable or annotated
 function greet(name),    @ OK — name inferred as Any if no constraint; SHOULD annotate public APIs
     print name.
-.
+..
 ```
 
 ## 4.9 Type Compatibility
@@ -299,7 +299,7 @@ value = "hello".
 
 if value is String,
     print value.    @ Smart cast to String
-.
+..
 ```
 
 ## 4.13 The `Void` Type
@@ -310,7 +310,7 @@ if value is String,
 function log_message(msg: String),
     print msg.
     @ implicit return void
-.
+..
 ```
 
 `Void` is not a valid type for variables.

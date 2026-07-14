@@ -43,7 +43,8 @@ irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall
 
 | Guide | Description |
 |-------|-------------|
-| **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** | Beginner tutorial — loops, functions, conditionals |
+| **[Lang.P Manual](docs/manual/README.md)** | Full 25-chapter language manual — introduction through error messages |
+| **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** | Hands-on beginner tutorial — loops, functions, conditionals |
 | **[Language Reference (v0.1)](docs/guides/LANGUAGE-REFERENCE.md)** | All commands & functions that work **right now** |
 
 ## IDE support (Cursor, Antigravity, VS Code, Windsurf)
@@ -89,7 +90,7 @@ langc --emit ast examples/hello.lp   # compiler/debug tools
 @ Greet the user by name.
 function greet(name),
     print "Hello " with name with "!".
-.
+..
 
 greet("World").
 ```

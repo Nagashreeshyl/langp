@@ -124,7 +124,7 @@ v1.0.0  — function removed (compile error)
 @deprecated("Use fetch_v2 instead. Will be removed in v1.0.0.")
 function fetch(url),
     return fetch_v2(url).
-.
+..
 ```
 
 The compiler MUST emit:

@@ -1,5 +1,7 @@
 # Chapter 11 — Modules & Imports
 
+> **Implementation note (v0.1):** `use` imports and package layout are **specification only**. v0.1 runs single-file programs. See [13 — Modules (manual)](../manual/13-modules.md).
+
 ## 11.1 Module System Overview
 
 Lang.P organizes code into **modules** (files) and **packages** (projects). The module system is designed for readability: every dependency is explicitly declared.
@@ -67,7 +69,7 @@ use json.
 
 function json(),    @ Local function shadows module
     return "custom".
-.
+..
 
 print json().    @ Calls local function, not module
 ```

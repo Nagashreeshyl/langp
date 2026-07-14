@@ -6,7 +6,13 @@ Language specification, guides, and reference material for Lang.P.
 
 | Path | Description |
 |------|-------------|
-| [`guides/HOW-TO-CODE.md`](guides/HOW-TO-CODE.md) | Beginner tutorial — start here |
+| **[`manual/`](manual/)** | **Lang.P Manual** — 25-chapter professional guide (Python/Rust style) |
+| [`spec/GRAMMAR-FREEZE-v1.md`](spec/GRAMMAR-FREEZE-v1.md) | **Grammar Freeze v1.0** — official syntax (single source of truth) |
+| [`spec/KEYWORDS.md`](spec/KEYWORDS.md) | Reserved keywords reference |
+| [`spec/DESIGN-DECISIONS.md`](spec/DESIGN-DECISIONS.md) | Why Lang.P syntax works this way |
+| [`spec/LANGUAGE-PHILOSOPHY.md`](spec/LANGUAGE-PHILOSOPHY.md) | Language design principles |
+| [`manual/README.md`](manual/README.md) | Manual index with implementation status badges |
+| [`guides/HOW-TO-CODE.md`](guides/HOW-TO-CODE.md) | Hands-on beginner tutorial |
 | [`guides/LANGUAGE-REFERENCE.md`](guides/LANGUAGE-REFERENCE.md) | **All commands & functions implemented in v0.1** |
 | [`spec/`](spec/) | Authoritative language specification (22 chapters) |
 | [`spec/LANGP-SPEC.md`](spec/LANGP-SPEC.md) | Single-document specification for offline reading |

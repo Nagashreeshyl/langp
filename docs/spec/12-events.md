@@ -17,16 +17,16 @@ Examples:
 ```lp
 on button.clicked,
     print "Button clicked".
-.
+..
 
 on Browser.Start,
     print "Browser started".
-.
+..
 
 on server.request,
     response = handle(server.request).
     server.respond(response).
-.
+..
 ```
 
 ## 12.3 Event Sources
@@ -55,7 +55,7 @@ on server.request,
     method = server.request.method.
     body = server.request.body.
     print method with " " with path.
-.
+..
 ```
 
 The event source expression provides the context object. In the handler scope, the event source is bound to its current value.
@@ -67,11 +67,11 @@ Multiple handlers MAY be registered for the same event:
 ```lp
 on button.clicked,
     print "Handler 1".
-.
+..
 
 on button.clicked,
     print "Handler 2".
-.
+..
 ```
 
 Handlers execute in registration order unless priority is specified (v0.2).
@@ -88,12 +88,12 @@ type DownloadManager,
 
     function finish(),
         self.completed.emit(file = self.current_file).
-    .
-.
+    ..
+..
 
 on download.completed,
     print "Downloaded: " with download.completed.file.
-.
+..
 ```
 
 ### 12.6.1 Event Declaration
@@ -102,7 +102,7 @@ on download.completed,
 type MyWidget,
     event clicked(x: Int, y: Int).
     event value_changed(old: Int, new: Int).
-.
+..
 ```
 
 ### 12.6.2 Event Emission
@@ -123,7 +123,7 @@ Handlers run synchronously by default. Async handlers use `wait for`:
 on button.clicked,
     data = wait for fetch(url).
     update_ui(data).
-.
+..
 ```
 
 ## 12.8 Removing Handlers
@@ -133,7 +133,7 @@ Handlers are automatically removed when their scope is destroyed. Explicit remov
 ```lp
 handler = on button.clicked,
     print "Clicked".
-.
+..
 
 @ Later:
 handler.disconnect().
@@ -148,12 +148,12 @@ UI events support bubbling (v0.2):
 ```lp
 on parent.clicked,
     print "Parent clicked".
-.
+..
 
 on child.clicked,
     print "Child clicked".
     @ Event bubbles to parent by default
-.
+..
 ```
 
 Use `event.stop()` to prevent propagation (v0.2).
@@ -165,15 +165,15 @@ Browser and UI events from the Navigator framework:
 ```lp
 on browser.tab_changed,
     print "Active tab: " with browser.tab_changed.url.
-.
+..
 
 on browser.navigation,
     print "Navigating to: " with browser.navigation.url.
-.
+..
 
 on browser.download_started,
     print "Downloading: " with browser.download_started.filename.
-.
+..
 ```
 
 See [Chapter 17](17-navigator.md) for the complete event catalog.
@@ -184,15 +184,15 @@ See [Chapter 17](17-navigator.md) for the complete event catalog.
 on user.message,
     reply = assistant.chat(user.message).
     print reply.
-.
+..
 
 on assistant.response,
     display(assistant.response.text).
-.
+..
 
 on assistant.error,
     print "AI Error: " with assistant.error.message.
-.
+..
 ```
 
 See [Chapter 18](18-ai-framework.md).
@@ -209,7 +209,7 @@ on server.request,
     catch error,
         server.respond(error_response(500, error.message)).
     ..
-.
+..
 ```
 
 ## 12.13 Event Loop Integration
@@ -222,7 +222,7 @@ browser = Browser(name = "Nova").
 
 on Browser.Start,
     print "Welcome".
-.
+..
 
 @ Event loop runs until browser is closed
 ```

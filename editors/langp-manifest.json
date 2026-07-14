@@ -54,6 +54,6 @@
     { "label": "if block", "detail": "if condition, … ..", "body": "if ${1:condition},\n\t${2:pass}\n.." },
     { "label": "repeat", "detail": "repeat N times, … ..", "body": "repeat ${1:5} times,\n\t${2:pass}\n.." },
     { "label": "for", "detail": "for item in items, … ..", "body": "for ${1:item} in ${2:items},\n\t${3:pass}\n.." },
-    { "label": "function", "detail": "function declaration", "body": "function ${1:name}(${2:params}),\n\t${3:pass}.\n." }
+    { "label": "function", "detail": "function declaration", "body": "function ${1:name}(${2:params}),\n\t${3:pass}.\n.." }
   ]
 }

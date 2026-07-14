@@ -118,7 +118,7 @@ x = x + 1.          @ reassignment
 ```lp
 function add(a, b),
     print (a + b).
-.
+..
 
 add(3, 5).
 ```

@@ -2,6 +2,8 @@
 
 A complete beginner's guide to writing Lang.P programs (`.lp` files).
 
+For the full 25-chapter manual (operators, types, filesystem, best practices, error messages), see **[Lang.P Manual](../manual/README.md)**. For a quick list of working commands, see **[Language Reference v0.1](LANGUAGE-REFERENCE.md)**.
+
 ---
 
 ## Quick start
@@ -77,12 +79,12 @@ print "Age: " with age.
 
 ## Functions
 
-Define with `function`, open body with `,`, close with `.`:
+Define with `function`, open body with `,`, close with `..`:
 
 ```lp
 function greet(name),
     print "Hello " with name with "!".
-.
+..
 
 greet("World").
 greet("Naga").
@@ -93,7 +95,7 @@ greet("Naga").
 ```lp
 function add(a, b),
     print a with " + " with b with " = " with (a + b).
-.
+..
 
 add(3, 5).
 ```
@@ -119,7 +121,7 @@ otherwise,
 ### Inline if (single line)
 
 ```lp
-status = if score >= 60, "Pass" otherwise "Fail".
+status = if score >= 60, "Pass", otherwise, "Fail".
 ```
 
 ---
@@ -167,13 +169,14 @@ repeat forever,
 ### for loop over a list
 
 ```lp
-@ (when list literals are supported)
+@ Iterate over a list literal.
+items = ["apple", "banana", "cherry"].
 for item in items,
     print item.
 ..
 ```
 
-See `examples/loops.lp` for more loop examples.
+See `examples/loops.lp` for more loop examples. For the full manual, see [08 — Loops](../manual/08-loops.md).
 
 ---
 
@@ -187,7 +190,7 @@ function demo(),
         print "Inside if".
     ..
     print "After if".
-.
+..
 
 demo().
 ```

@@ -1,5 +1,7 @@
 # Chapter 14 — Concurrency & Async
 
+> **Implementation note (v0.1):** `async`, `wait for`, and concurrency primitives are **specification only**. See [15 — Async Programming (manual)](../manual/15-async.md).
+
 ## 14.1 Overview
 
 Lang.P provides async/await for non-blocking operations and primitives for concurrent execution. The primary async syntax uses `wait for`.
@@ -12,7 +14,7 @@ Functions that perform async operations are marked with `async`:
 async function fetch_data(url),
     response = wait for get url.
     return response.body.
-.
+..
 ```
 
 Calling an async function without `wait for` returns a `Task<T>`:
@@ -42,7 +44,7 @@ use network.
 async function fetch_user(id),
     response = wait for get ("https://api.example.com/users/" with id).
     return json.parse(response.body).
-.
+..
 
 user = wait for fetch_user(42).
 ```
@@ -86,7 +88,7 @@ Event handlers can await without blocking the event loop:
 on button.clicked,
     data = wait for fetch(url).
     update_display(data).
-.
+..
 ```
 
 ## 14.7 Synchronization Primitives
@@ -100,7 +102,7 @@ try,
     shared_data += 1.
 finally,
     lock.release().
-.
+..
 ```
 
 Scoped lock (v0.2):
@@ -108,7 +110,7 @@ Scoped lock (v0.2):
 ```lp
 with lock,
     shared_data += 1.
-.
+..
 ```
 
 ### 14.7.2 Channel
@@ -120,9 +122,9 @@ channel = Channel<Int>(capacity = 100).
 spawn,
     for i in 0..100,
         channel.send(i).
-    .
+    ..
     channel.close().
-.
+..
 
 @ Consumer
 while true,
@@ -173,7 +175,7 @@ wait for sleep(seconds = 1.5).
 timer = Timer(interval = 1000).
 on timer.elapsed,
     print "Tick".
-.
+..
 timer.start().
 ```
 
@@ -182,7 +184,7 @@ timer.start().
 ```lp
 results = parallel for item in items,
     wait for process(item).
-.
+..
 ```
 
 Results maintain input order.
@@ -194,12 +196,12 @@ async function data_stream() -> AsyncStream<Int>,
     for i in 0..100,
         yield i.
         wait for sleep(seconds = 0.1).
-    .
-.
+    ..
+..
 
 async for value in data_stream(),
     print value.
-.
+..
 ```
 
 ## 14.13 Error Handling in Async Code
@@ -214,7 +216,7 @@ async function fetch_safe(url),
         print "Network error: " with error.message.
         return null.
     ..
-.
+..
 ```
 
 Uncaught errors in spawned tasks are reported to the async runtime error handler.
@@ -228,10 +230,10 @@ async function long_task(cancel: CancellationToken),
     repeat forever,
         if cancel.is_cancelled(),
             return.
-        .
+        ..
         wait for do_step().
     ..
-.
+..
 ```
 
 ## 14.15 Performance Guidelines

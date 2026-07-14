@@ -18,7 +18,7 @@ repeat 5 times as i,
 repeat forever,
     if done,
         break.
-    .
+    ..
 ..
 
 for item in items,

@@ -81,10 +81,10 @@ return x, y.    @ Multiple return values (tuple)
 repeat 10 times,
     if done,
         break.
-    .
+    ..
     if skip,
         continue.
-    .
+    ..
 ..
 ```
 
@@ -99,7 +99,7 @@ A block is a sequence of statements enclosed by `,` and `..`:
     step1().
     step2().
     step3().
-.
+..
 ```
 
 Standalone blocks are rarely used but valid for scoping:
@@ -109,9 +109,9 @@ function example(),
     ,
         temp = compute().
         result = transform(temp).
-    .
+    ..
     return result.
-.
+..
 ```
 
 ## 7.8 Empty Blocks
@@ -146,19 +146,19 @@ Top-level and block-level declarations:
 ```lp
 function helper(),
     @ ...
-.
+..
 
 type Point,
     x: Float64.
     y: Float64.
-.
+..
 
 enum Direction,
     North.
     South.
     East.
     West.
-.
+..
 ```
 
 ## 7.11 Import Statement
@@ -188,7 +188,7 @@ The compiler MUST warn on unreachable statements:
 function example(),
     return 42.
     print "never reached".    @ Warning: unreachable code
-.
+..
 ```
 
 ## 7.14 Labeled Statements

@@ -12,11 +12,9 @@ use langp_lexer::{Keyword, Span, Token, TokenKind};
 /// How an indented block is closed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BlockClose {
-    /// Control flow: `..` or `.`
+    /// All blocks close with `..` (Grammar Freeze v1.0).
     DoubleDot,
-    /// Declarations / named objects: `.`
-    StatementEnd,
-    /// Inner branch blocks (closed by outer construct)
+    /// Inner branch blocks (closed by outer construct's `..`).
     None,
 }
 
@@ -89,7 +87,7 @@ impl Parser {
         })
     }
 
-    fn parse_function_decl(&mut self, nested: bool) -> ParseResult<FunctionDecl> {
+    fn parse_function_decl(&mut self, _nested: bool) -> ParseResult<FunctionDecl> {
         let start = self.current_span();
         let is_async = if self.check_keyword(Keyword::Async) {
             self.bump();
@@ -109,10 +107,7 @@ impl Parser {
             None
         };
         self.expect(&TokenKind::Comma)?;
-        let body = self.parse_indented_block(BlockClose::StatementEnd)?;
-        if !nested {
-            // STMT_END consumed by block close for top-level / type member
-        }
+        let body = self.parse_indented_block(BlockClose::DoubleDot)?;
         let span = span_between(start, body.span);
         Ok(FunctionDecl {
             name,
@@ -157,7 +152,7 @@ impl Parser {
             });
         }
         self.expect(&TokenKind::Dedent)?;
-        self.expect_stmt_end()?;
+        self.expect_block_close()?;
         Ok(EnumDecl {
             name,
             variants,
@@ -201,7 +196,7 @@ impl Parser {
             }
         }
         self.expect(&TokenKind::Dedent)?;
-        self.expect_stmt_end()?;
+        self.expect_block_close()?;
         Ok(members)
     }
 
@@ -421,8 +416,12 @@ impl Parser {
 
         if self.check(&TokenKind::BlockClose) {
             self.bump();
-        } else if self.check(&TokenKind::StmtEnd) {
-            self.expect_stmt_end()?;
+        } else {
+            return Err(ParseError::new(
+                ParseErrorKind::MissingBlockClose,
+                self.current_span(),
+                "expected `..` to close block",
+            ));
         }
         let end = self.previous_span();
         Ok(IfStmt {
@@ -538,8 +537,12 @@ impl Parser {
 
         if self.check(&TokenKind::BlockClose) {
             self.bump();
-        } else if self.check(&TokenKind::StmtEnd) {
-            self.expect_stmt_end()?;
+        } else {
+            return Err(ParseError::new(
+                ParseErrorKind::MissingBlockClose,
+                self.current_span(),
+                "expected `..` to close block",
+            ));
         }
         Ok(TryStmt {
             body,
@@ -565,14 +568,7 @@ impl Parser {
 
         match close {
             BlockClose::DoubleDot => {
-                if self.check(&TokenKind::BlockClose) {
-                    self.bump();
-                } else {
-                    self.expect_stmt_end()?;
-                }
-            }
-            BlockClose::StatementEnd => {
-                self.expect_stmt_end()?;
+                self.expect_block_close()?;
             }
             BlockClose::None => {}
         }
@@ -1266,7 +1262,7 @@ impl Parser {
             self.bump();
             if self.check(&TokenKind::Comma) {
                 self.bump();
-                let fields = self.parse_indented_block(BlockClose::StatementEnd)?;
+                let fields = self.parse_indented_block(BlockClose::DoubleDot)?;
                 let fields_span = fields.span;
                 return Ok(Expr::Object {
                     ty,
@@ -1679,6 +1675,10 @@ impl Parser {
 
     fn expect_stmt_end(&mut self) -> ParseResult<()> {
         self.expect(&TokenKind::StmtEnd)
+    }
+
+    fn expect_block_close(&mut self) -> ParseResult<()> {
+        self.expect(&TokenKind::BlockClose)
     }
 
     fn skip_newlines(&mut self) {

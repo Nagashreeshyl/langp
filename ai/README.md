@@ -21,7 +21,7 @@ assistant = Assistant(),
     provider = Groq.
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
-.
+..
 
 reply = assistant.chat("What is Lang.P?").
 print reply.

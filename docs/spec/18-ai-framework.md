@@ -1,5 +1,7 @@
 # Chapter 18 — AI Framework
 
+> **Implementation note (v0.1):** The AI framework is **specification only**. See [22 — AI Framework (manual)](../manual/22-ai-framework.md).
+
 ## 18.1 Overview
 
 The Lang.P AI framework provides first-class support for building AI-powered applications, agents, and LLM integrations. AI is a core part of the Lang.P ecosystem, not an afterthought.
@@ -26,12 +28,12 @@ assistant = Assistant(),
     provider = Groq.
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
-.
+..
 
 on user.message,
     reply = assistant.chat(user.message).
     print reply.
-.
+..
 ```
 
 ### 18.3.2 Full Configuration
@@ -47,7 +49,7 @@ assistant = Assistant(),
     streaming = enabled.
     memory = enabled.
     tools = [search_web, run_code, read_file].
-.
+..
 ```
 
 ## 18.4 Supported Providers
@@ -68,14 +70,14 @@ Switching providers requires changing only the provider and model:
 assistant = Assistant(),
     provider = Ollama.
     model = llama3.
-.
+..
 
 @ Production — Groq
 assistant = Assistant(),
     provider = Groq.
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
-.
+..
 ```
 
 ## 18.5 Chat
@@ -105,9 +107,9 @@ on user.message,
     stream = assistant.stream(user.message).
     async for chunk in stream,
         print inline chunk.
-    .
+    ..
     print "".
-.
+..
 ```
 
 ## 18.6 Tool Calling
@@ -119,19 +121,19 @@ Define tools that the AI can invoke:
 function search_web(query: String) -> String,
     results = wait for get ("https://search.example.com?q=" with query).
     return results.body.
-.
+..
 
 function run_code(code: String) -> String,
     result = execute_sandbox(code).
     return result.output.
-.
+..
 
 assistant = Assistant(),
     provider = OpenAI.
     api_key = env.OPENAI_API_KEY.
     model = gpt-4o.
     tools = [search_web, run_code].
-.
+..
 
 @ The assistant automatically calls tools when needed
 reply = assistant.chat("Search for the latest Lang.P news and summarize").
@@ -144,7 +146,7 @@ tool get_weather,
     description = "Get current weather for a city".
     parameter city: String, description = "City name".
     return fetch_weather(city).
-.
+..
 ```
 
 ## 18.7 Agents
@@ -157,7 +159,7 @@ agent = Agent(),
     goal = "Research and write a summary about quantum computing".
     max_steps = 10.
     tools = [search_web, read_page, write_file].
-.
+..
 
 result = wait for agent.run().
 print result.summary.
@@ -177,7 +179,7 @@ use ai.
 embeddings = Embeddings(),
     provider = OpenAI.
     model = text-embedding-3-small.
-.
+..
 
 vector = embeddings.embed("Hello, world").
 vectors = embeddings.embed_batch(["text1", "text2"]).
@@ -192,7 +194,7 @@ use ai.
 @ Build a knowledge base
 kb = KnowledgeBase(),
     embeddings = embeddings.
-.
+..
 
 kb.add_document("manual.pdf").
 kb.add_text("Lang.P is a readable programming language.").
@@ -204,7 +206,7 @@ assistant = Assistant(),
     api_key = env.GROQ_API_KEY.
     model = llama-3.3-70b.
     knowledge = kb.
-.
+..
 
 reply = assistant.chat("How do I create a browser in Lang.P?").
 @ Response is grounded in the knowledge base
@@ -222,8 +224,8 @@ assistant = Assistant(),
         type = persistent.
         storage = "memory.db".
         max_entries = 1000.
-.
-.
+..
+..
 
 @ The assistant remembers past conversations
 reply = assistant.chat("What did we discuss yesterday?").
@@ -250,13 +252,13 @@ mcp = MCPClient(),
         "filesystem": "npx @modelcontextprotocol/server-filesystem /path".
         "github": "npx @modelcontextprotocol/server-github".
     ].
-.
+..
 
 assistant = Assistant(),
     provider = Anthropic.
     model = claude-sonnet-4.
     mcp = mcp.
-.
+..
 
 @ Assistant can use MCP tools (file access, GitHub, etc.)
 reply = assistant.chat("List the files in my project and create a README").
@@ -267,27 +269,27 @@ reply = assistant.chat("List the files in my project and create a README").
 ```lp
 on user.message,
     @ Fires when user sends a message
-.
+..
 
 on assistant.response,
     @ Fires when assistant completes a response
     print assistant.response.text.
-.
+..
 
 on assistant.stream_chunk,
     @ Fires for each streaming chunk
     print inline assistant.stream_chunk.text.
-.
+..
 
 on assistant.tool_call,
     @ Fires when assistant invokes a tool
     print "Calling: " with assistant.tool_call.name.
-.
+..
 
 on assistant.error,
     @ Fires on API or processing errors
     print "Error: " with assistant.error.message.
-.
+..
 ```
 
 ## 18.13 Structured Output
@@ -297,7 +299,7 @@ type Analysis = ,
     summary: String.
     sentiment: String.
     keywords: List<String>.
-.
+..
 
 result = assistant.structured("Analyze this text: " with text, type = Analysis).
 print result.summary.

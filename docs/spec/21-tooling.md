@@ -331,7 +331,7 @@ Doc comment syntax:
 @   print user.name.
 function create_user(name: String, age: Int) -> User,
     @ ...
-.
+..
 ```
 
 ## 21.11 Continuous Integration

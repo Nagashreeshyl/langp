@@ -1,5 +1,7 @@
 # Chapter 17 — Navigator Framework
 
+> **Implementation note (v0.1):** Navigator is **specification only** — no browser runtime ships yet. See [21 — Navigator Framework (manual)](../manual/21-navigator.md).
+
 ## 17.1 Overview
 
 Navigator is Lang.P's flagship framework for building desktop browsers and rich desktop applications. It enables users to create a complete Chrome-like browser with minimal code.
@@ -25,7 +27,7 @@ use navigator.
 browser = Browser(),
     name = "Nova".
     homepage = "https://google.com".
-.
+..
 
 @ Browser event loop starts automatically
 ```
@@ -51,7 +53,7 @@ browser = Browser(),
     javascript = enabled.
     images = enabled.
     cookies = enabled.
-.
+..
 ```
 
 ### 17.3.3 Configuration Options
@@ -79,37 +81,37 @@ browser = Browser(),
 ```lp
 on Browser.Start,
     print "Browser started".
-.
+..
 
 on Browser.Close,
     print "Browser closed".
     save_session().
-.
+..
 
 on browser.navigation,
     url = browser.navigation.url.
     print "Navigating to: " with url.
-.
+..
 
 on browser.tab_changed,
     print "Active tab: " with browser.tab_changed.title.
-.
+..
 
 on browser.download_started,
     print "Downloading: " with browser.download_started.filename.
-.
+..
 
 on browser.download_completed,
     print "Download complete: " with browser.download_completed.path.
-.
+..
 
 on browser.title_changed,
     @ Update window title
-.
+..
 
 on browser.page_loaded,
     print "Page loaded: " with browser.page_loaded.url.
-.
+..
 ```
 
 ## 17.5 Browser API
@@ -165,7 +167,7 @@ button = toolbar.add_button(
 
 on button.clicked,
     browser.add_bookmark(browser.current_title, browser.current_url).
-.
+..
 
 @ Custom sidebar panel
 sidebar = browser.sidebar(width = 300).
@@ -196,7 +198,7 @@ my_theme = Theme(),
     tab_inactive = "#1a1a2e".
     font = "Inter".
     font_size = 14.
-.
+..
 
 browser = Browser(), theme = my_theme.
 ```
@@ -213,8 +215,8 @@ type AdBlocker extends Extension,
         browser.execute_js("""
             document.querySelectorAll('[class*="ad"]').forEach(el => el.remove());
         """).
-    .
-.
+    ..
+..
 
 browser.install_extension(AdBlocker()).
 ```
@@ -258,12 +260,12 @@ browser = Browser(),
     tabs = enabled.
     @ Enable the bookmarks bar below the address bar.
     bookmarks = enabled.
-.
+..
 
 @ This event fires when the browser finishes starting up.
 on Browser.Start,
     print "Welcome to Nova Browser!".
-.
+..
 ```
 
 ## 17.10 Architecture
@@ -298,7 +300,7 @@ app = Application(),
     name = "My App".
     width = 800.
     height = 600.
-.
+..
 
 window = app.window().
 window.add(Button(text = "Click Me")).
@@ -306,7 +308,7 @@ window.add(TextLabel(text = "Hello, Lang.P!")).
 
 on app.start,
     window.show().
-.
+..
 ```
 
 UI components: `Button`, `TextLabel`, `TextInput`, `Checkbox`, `Dropdown`, `ListView`, `Canvas`, `MenuBar`, `Dialog`.

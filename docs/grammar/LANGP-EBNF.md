@@ -91,7 +91,7 @@ use_decl = "use", dotted_name, STMT_END .
 
 ```ebnf
 function_decl = [ "async" ], [ "inline" ], "function", identifier,
-                [ generic_params ], function_sig, block, STMT_END .
+                [ generic_params ], function_sig, COMMA, block, BLOCK_CLOSE .
 
 function_sig  = "(", [ param_list ], ")", [ "->", type_expr ] .
 ```
@@ -101,14 +101,14 @@ Example parse tree input:
 ```lp
 function greet(name),
     print "Hello " with name.
-.
+..
 ```
 
 ### Types
 
 ```ebnf
 type_decl = [ visibility ], "type", identifier, [ generic_params ],
-            [ type_inheritance ], type_body, STMT_END .
+            [ type_inheritance ], type_body .
 
 type_body = COMMA, NEWLINE, INDENT, { type_member }, DEDENT, BLOCK_CLOSE .
 ```
@@ -190,7 +190,7 @@ user = User("Naga", 25).
 browser = Browser(),
     name = "Nova".
     homepage = "https://google.com".
-.
+..
 ```
 
 ```ebnf

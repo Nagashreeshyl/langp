@@ -1,5 +1,7 @@
 # Chapter 10 — Object Model
 
+> **Implementation note (v0.1):** `type`, OOP, inheritance, and interfaces are **specification only**. The v0.1 interpreter does not run object-oriented programs yet. See [12 — Classes (manual)](../manual/12-classes.md).
+
 ## 10.1 Type Definition
 
 Lang.P uses `type` instead of `class`:
@@ -9,7 +11,7 @@ type User,
     name: String.
     age: Int.
     email: String? = null.
-.
+..
 ```
 
 Fields are declared with optional type annotations and default values. Fields without defaults MUST be set in the constructor.
@@ -29,7 +31,7 @@ user = User(),
     name = "Naga".
     age = 25.
     email = "naga@example.com".
-.
+..
 ```
 
 ### 10.2.3 Default Construction
@@ -61,8 +63,8 @@ type User,
     function init(name, age = 0),
         self.name = name.
         self.age = age.
-    .
-.
+    ..
+..
 ```
 
 Multiple constructors via overloading:
@@ -70,7 +72,7 @@ Multiple constructors via overloading:
 ```lp
 function init(name),
     self.init(name, 0).
-.
+..
 ```
 
 ## 10.5 Inheritance
@@ -83,16 +85,16 @@ type Animal,
 
     function speak(),
         print "...".
-    .
-.
+    ..
+..
 
 type Dog extends Animal,
     breed: String.
 
     function speak(),
         print "Woof!".
-    .
-.
+    ..
+..
 
 dog = Dog(name = "Buddy", breed = "Labrador").
 dog.speak().    @ "Woof!"
@@ -109,8 +111,8 @@ type Dog extends Animal,
     function init(name, breed),
         super.init(name).
         self.breed = breed.
-    .
-.
+    ..
+..
 ```
 
 ## 10.6 Interfaces
@@ -121,12 +123,12 @@ Interface definition:
 interface Drawable,
     function draw() -> Void.
     function bounds() -> (Int, Int, Int, Int).
-.
+..
 
 interface Serializable,
     function serialize() -> String.
     function deserialize(data: String) -> Void.
-.
+..
 ```
 
 Implementation is implicit (structural):
@@ -140,12 +142,12 @@ type Rectangle,
 
     function draw(),
         @ render rectangle
-    .
+    ..
 
     function bounds(),
         return (self.x, self.y, self.width, self.height).
-    .
-.
+    ..
+..
 
 @ Rectangle satisfies Drawable structurally — no explicit 'implements' needed
 ```
@@ -155,7 +157,7 @@ Explicit implementation for clarity in public APIs:
 ```lp
 type Rectangle implements Drawable, Serializable,
     @ ...
-.
+..
 ```
 
 ## 10.7 Polymorphism
@@ -163,7 +165,7 @@ type Rectangle implements Drawable, Serializable,
 ```lp
 function render(item: Drawable),
     item.draw().
-.
+..
 
 rect = Rectangle(x = 0, y = 0, width = 100, height = 50).
 render(rect).
@@ -183,13 +185,13 @@ type BankAccount,
     public function deposit(amount: Float64),
         if amount > 0,
             self.balance += amount.
-        .
-    .
+        ..
+    ..
 
     public function get_balance() -> Float64,
         return self.balance.
-    .
-.
+    ..
+..
 ```
 
 | Modifier | Accessible from |
@@ -207,10 +209,10 @@ type Config,
     static function get() -> Config,
         if self.instance == null,
             self.instance = Config().
-        .
+        ..
         return self.instance.
-    .
-.
+    ..
+..
 ```
 
 Static fields and methods belong to the type, not instances. Access via `TypeName.member`.
@@ -225,20 +227,20 @@ type Temperature,
 
     property celsius -> Float64,
         return self._celsius.
-    .
+    ..
 
     property celsius -> Float64 = value,
         self._celsius = value.
-    .
+    ..
 
     property fahrenheit -> Float64,
         return self._celsius * 9.0 / 5.0 + 32.0.
-    .
+    ..
 
     property fahrenheit -> Float64 = value,
         self._celsius = (value - 32.0) * 5.0 / 9.0.
-    .
-.
+    ..
+..
 ```
 
 ## 10.11 Abstract Types
@@ -249,19 +251,19 @@ Cannot be instantiated directly; must be extended:
 abstract type Shape,
     abstract function area() -> Float64.
     abstract function perimeter() -> Float64.
-.
+..
 
 type Circle extends Shape,
     radius: Float64.
 
     function area() -> Float64,
         return 3.14159 * self.radius ** 2.
-    .
+    ..
 
     function perimeter() -> Float64,
         return 2.0 * 3.14159 * self.radius.
-    .
-.
+    ..
+..
 ```
 
 ## 10.12 Generics
@@ -272,12 +274,12 @@ type Box<T>,
 
     function get() -> T,
         return self.value.
-    .
+    ..
 
     function set(value: T),
         self.value = value.
-    .
-.
+    ..
+..
 
 int_box = Box<Int>(value = 42).
 str_box = Box<String>(value = "hello").
@@ -292,8 +294,8 @@ type SortedList<T: Comparable>,
     function add(item: T),
         self.items.add(item).
         self.items.sort().
-    .
-.
+    ..
+..
 ```
 
 ## 10.13 Operator Overloading
@@ -328,8 +330,8 @@ type FileHandle,
 
     function destroy(),
         close_native(self._handle).
-    .
-.
+    ..
+..
 ```
 
 Deterministic cleanup uses `try`/`finally` or the `using` statement (v0.2).
@@ -340,17 +342,17 @@ Deterministic cleanup uses `try`/`finally` or the `using` statement (v0.2).
 enum Result<T, E>,
     Ok(value: T).
     Err(error: E).
-.
+..
 
 enum Option<T>,
     Some(value: T).
     None.
-.
+..
 
 result = Result.Ok(42).
 if result is Result.Ok,
     print result.value.
-.
+..
 ```
 
 ## 10.18 The Root Object Type
@@ -363,7 +365,7 @@ type Object,
     function to_string() -> String.
     function hash() -> Int.
     function equals(other: Object) -> Bool.
-.
+..
 ```
 
 Every value can be converted to `Object`.

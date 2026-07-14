@@ -35,7 +35,7 @@ dotted_name         = identifier, { DOT, identifier } ;
    -------------------------------------------------------------------------- *)
 
 function_decl       = [ 'async' ], [ 'inline' ], 'function', identifier,
-                      [ generic_params ], function_sig, block STMT_END ;
+                      [ generic_params ], function_sig, COMMA, block, BLOCK_CLOSE ;
 
 function_sig        = '(', [ param_list ], ')',
                       [ '->', type_expr ] ;
@@ -54,7 +54,7 @@ type_constraint     = type_expr, { '&', type_expr } ;
 
 type_decl           = [ visibility ], 'type', identifier,
                       [ generic_params ], [ type_inheritance ],
-                      type_body, STMT_END ;
+                      type_body ;
 
 type_inheritance    = 'extends', type_expr
                     | 'implements', type_expr, { ',', type_expr }
@@ -81,7 +81,7 @@ visibility          = 'public' | 'private' | 'internal' ;
 
 (* --- Enum --- *)
 
-enum_decl           = [ visibility ], 'enum', identifier, enum_body, STMT_END ;
+enum_decl           = [ visibility ], 'enum', identifier, enum_body ;
 
 enum_body           = COMMA, NEWLINE, INDENT, { enum_variant }, DEDENT, BLOCK_CLOSE ;
 
@@ -93,7 +93,7 @@ arg                 = identifier, [ ':', type_expr ], [ '=', expr ] ;
 (* --- Interface --- *)
 
 interface_decl      = [ visibility ], 'interface', identifier,
-                      [ generic_params ], interface_body, STMT_END ;
+                      [ generic_params ], interface_body ;
 
 interface_body      = COMMA, NEWLINE, INDENT, { interface_member }, DEDENT, BLOCK_CLOSE ;
 
@@ -103,7 +103,7 @@ interface_member    = function_decl
 
 (* --- Extension --- *)
 
-extension_decl      = 'extension', type_expr, extension_body, STMT_END ;
+extension_decl      = 'extension', type_expr, extension_body ;
 
 extension_body      = COMMA, NEWLINE, INDENT, { function_decl }, DEDENT, BLOCK_CLOSE ;
 

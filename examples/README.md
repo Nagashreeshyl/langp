@@ -30,4 +30,5 @@ All examples MUST:
 - Use valid Lang.P syntax per the [language specification](../docs/spec/)
 - Include `@` comments explaining each section for beginners
 - End every statement with `.`
+- Close every block with `..` (see [Grammar Freeze v1.0](../docs/spec/GRAMMAR-FREEZE-v1.md))
 - Use `with` for string composition (never `+`)

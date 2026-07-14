@@ -11,7 +11,7 @@ Lang.P uses `.lp` files. Every statement ends with `.` (period). Blocks open wit
 ## Syntax
 
 - Comments: `@ comment here`
-- Functions: `function name(params),` body `.`
+- Functions: `function name(params),` … `..`
 - Print: `print "text" with variable.`
 - Loops: `repeat 5 times,` or `repeat 5 times as i,` ... `..`
 - Conditionals: `if cond,` ... `otherwise,` ... `..`
@@ -27,7 +27,7 @@ Lang.P uses `.lp` files. Every statement ends with `.` (period). Blocks open wit
 ```lp
 function greet(name),
     print "Hello " with name with "!".
-.
+..
 
 repeat 3 times as i,
     greet("World").

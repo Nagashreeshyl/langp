@@ -7,7 +7,7 @@ Functions are defined with the `function` keyword:
 ```lp
 function greet(name),
     print "Hello " with name.
-.
+..
 ```
 
 With return type annotation:
@@ -15,7 +15,7 @@ With return type annotation:
 ```lp
 function add(a: Int, b: Int) -> Int,
     return a + b.
-.
+..
 ```
 
 With default parameters:
@@ -23,7 +23,7 @@ With default parameters:
 ```lp
 function greet(name, greeting = "Hello"),
     print greeting with " " with name.
-.
+..
 ```
 
 With variadic parameters:
@@ -32,8 +32,8 @@ With variadic parameters:
 function log(level, ...messages),
     for msg in messages,
         print "[" with level with "] " with msg.
-    .
-.
+    ..
+..
 ```
 
 ## 8.2 Function Signature
@@ -70,7 +70,7 @@ Explicit return:
 ```lp
 function square(n: Int) -> Int,
     return n * n.
-.
+..
 ```
 
 Implicit return (last expression):
@@ -78,7 +78,7 @@ Implicit return (last expression):
 ```lp
 function square(n: Int) -> Int,
     n * n.    @ v0.2 — implicit return of last expression
-.
+..
 ```
 
 In v0.1, `return` is required for non-void functions.
@@ -88,7 +88,7 @@ Multiple return values:
 ```lp
 function divmod(a: Int, b: Int) -> (Int, Int),
     return a // b, a % b.
-.
+..
 
 quotient, remainder = divmod(10, 3).
 ```
@@ -100,11 +100,11 @@ Functions MAY be overloaded by parameter types:
 ```lp
 function process(data: String),
     @ handle string
-.
+..
 
 function process(data: List<Int>),
     @ handle list
-.
+..
 ```
 
 The compiler selects the best match at compile time. Ambiguous calls are compile errors.
@@ -115,9 +115,9 @@ The compiler selects the best match at compile time. Ambiguous calls are compile
 function first<T>(items: List<T>) -> T?,
     if items.is_empty(),
         return null.
-    .
+    ..
     return items[0].
-.
+..
 ```
 
 ## 8.7 Closures
@@ -128,8 +128,8 @@ Functions capture their lexical environment:
 function multiplier(factor),
     return function(n),
         return n * factor.
-    .
-.
+    ..
+..
 
 times3 = multiplier(3).
 print times3(10).    @ 30
@@ -144,7 +144,7 @@ Functions are first-class values:
 ```lp
 function apply(fn, value),
     return fn(value).
-.
+..
 
 result = apply((x) => x * 2, 21).
 ```
@@ -160,8 +160,8 @@ type Rectangle,
 
     function area() -> Float64,
         return self.width * self.height.
-    .
-.
+    ..
+..
 
 rect = Rectangle(width = 10, height = 5).
 print rect.area().
@@ -177,8 +177,8 @@ type MathUtils,
         if value < min, return min.
         if value > max, return max.
         return value.
-    .
-.
+    ..
+..
 
 result = MathUtils.clamp(15, 0, 10).
 ```
@@ -195,8 +195,8 @@ type User,
     function init(name, age = 0),
         self.name = name.
         self.age = age.
-    .
-.
+    ..
+..
 
 user = User(name = "Naga", age = 25).
 @ Or positional:
@@ -209,7 +209,7 @@ Named-field construction syntax:
 user = User(),
     name = "Naga".
     age = 25.
-.
+..
 ```
 
 ## 8.12 Properties
@@ -222,12 +222,12 @@ type Circle,
 
     property diameter -> Float64,
         return self.radius * 2.
-    .
+    ..
 
     property diameter -> Float64 = value,
         self.radius = value / 2.
-    .
-.
+    ..
+..
 ```
 
 ## 8.13 Operator Overloading
@@ -241,8 +241,8 @@ type Vector,
 
     function __add__(other: Vector) -> Vector,
         return Vector(x = self.x + other.x, y = self.y + other.y).
-    .
-.
+    ..
+..
 
 v3 = v1 + v2.
 ```
@@ -268,8 +268,8 @@ Add methods to existing types without modifying their definition:
 extension String,
     function reversed() -> String,
         return self.chars().reverse().collect().
-    .
-.
+    ..
+..
 
 print "hello".reversed().    @ "olleh"
 ```
@@ -283,14 +283,14 @@ Recursion is fully supported. The compiler MAY apply tail-call optimization when
 ```lp
 function factorial(n: Int) -> Int,
     return factorial_helper(n, 1).
-.
+..
 
 function factorial_helper(n: Int, acc: Int) -> Int,
     if n <= 1,
         return acc.
-    .
+    ..
     return factorial_helper(n - 1, acc * n).    @ TCO eligible
-.
+..
 ```
 
 ## 8.16 Function Attributes
@@ -301,7 +301,7 @@ Metadata annotations (v0.2):
 @deprecated("Use fetch_v2 instead")
 function fetch(url),
     @ ...
-.
+..
 ```
 
 In v0.1, use comments for deprecation notices.
@@ -313,7 +313,7 @@ Performance hint for small functions:
 ```lp
 inline function square(n: Int) -> Int,
     return n * n.
-.
+..
 ```
 
 The compiler MAY inline the function body at call sites. `inline` is a hint, not a guarantee.
@@ -325,7 +325,7 @@ The program entry point:
 ```lp
 function main(),
     print "Hello, Lang.P!".
-.
+..
 ```
 
 `main` MUST take no parameters and return `Int` (exit code) or `Void`. If it returns `Int`, that value is the process exit code.
@@ -333,5 +333,5 @@ function main(),
 ```lp
 function main() -> Int,
     return 0.
-.
+..
 ```

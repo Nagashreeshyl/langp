@@ -92,7 +92,7 @@ Variables declared inside a block are visible only within that block:
 if true,
     local = 42.
     print local.
-.
+..
 @ print local.    @ Error: local not in scope
 ```
 
@@ -104,7 +104,7 @@ Parameters and local variables are scoped to the function body:
 function process(data),
     temp = transform(data).
     return temp.
-.
+..
 ```
 
 ### 5.4.3 Module Scope
@@ -116,7 +116,7 @@ CONFIG = load_config().
 
 function run(),
     print CONFIG.host.
-.
+..
 ```
 
 ### 5.4.4 Closure Capture
@@ -129,8 +129,8 @@ function make_counter(),
     return function(),
         count += 1.
         return count.
-    .
-.
+    ..
+..
 
 counter = make_counter().
 print counter().    @ 1
@@ -146,7 +146,7 @@ x = 10.
 if true,
     x = 20.    @ shadows outer x
     print x.   @ 20
-.
+..
 print x.       @ 10
 ```
 
@@ -172,7 +172,7 @@ const MAX_RETRIES = 3.
 
 function get_config() -> Config,
     return load_config().
-.
+..
 ```
 
 ## 5.8 Environment Variables
