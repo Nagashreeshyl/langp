@@ -109,6 +109,9 @@ download_binary() {
 
 if [ "$CARGO_INSTALL" = "1" ] || ! command -v curl >/dev/null 2>&1; then
   install_from_source
+elif [ "$VERSION" = "latest" ] && command -v cargo >/dev/null 2>&1 && command -v git >/dev/null 2>&1; then
+  echo "Building latest toolchain from GitHub main..."
+  install_from_source
 else
   TRIPLE="$(detect_platform)"
   TAG="$(resolve_release_tag)"
