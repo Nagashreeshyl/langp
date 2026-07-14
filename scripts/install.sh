@@ -8,6 +8,7 @@ REPO="${LANGP_REPO:-Nagashreeshyl/langp}"
 INSTALL_DIR="${LANGP_INSTALL_DIR:-$HOME/.local/bin}"
 CARGO_INSTALL="${LANGP_FROM_SOURCE:-0}"
 SKIP_EXT="${LANGP_SKIP_EXTENSION:-0}"
+CACHE_DIR="${LANGP_CACHE_DIR:-$HOME/.cache/langp-src}"
 
 echo "╔══════════════════════════════════════╗"
 echo "║         Lang.P installer             ║"
@@ -33,31 +34,76 @@ detect_platform() {
   echo "${ARCH}-${PLATFORM}"
 }
 
+# When run via `curl | sh`, $0 is "sh" — detect repo root safely.
+find_local_repo() {
+  case "$0" in
+    sh|bash|dash) return 1 ;;
+  esac
+  script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)" || return 1
+  root="$(CDPATH= cd -- "$script_dir/.." && pwd)" || return 1
+  if [ -f "$root/Cargo.toml" ] && [ -d "$root/langc" ]; then
+    echo "$root"
+    return 0
+  fi
+  return 1
+}
+
+resolve_release_tag() {
+  tag="$VERSION"
+  if [ "$tag" = "latest" ]; then
+    tag="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+      | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+      | head -1)" || true
+    if [ -z "$tag" ]; then
+      tag="v0.1.2"
+    fi
+  fi
+  echo "$tag"
+}
+
 install_from_source() {
-  SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-  ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
   echo "Building lang, langc, and lang-lsp from source..."
   if ! command -v cargo >/dev/null 2>&1; then
     echo "Rust/cargo required. Install from https://rustup.rs" >&2
     exit 1
   fi
-  (cd "$ROOT" && cargo build --profile release-fast -p lang -p langc -p langp-lsp)
-  cp "$ROOT/target/release-fast/lang" "$INSTALL_DIR/lang"
-  cp "$ROOT/target/release-fast/langc" "$INSTALL_DIR/langc"
-  cp "$ROOT/target/release-fast/lang-lsp" "$INSTALL_DIR/lang-lsp"
+
+  if root="$(find_local_repo)"; then
+    echo "  Using local repo: $root"
+  else
+    echo "  Cloning from GitHub into $CACHE_DIR ..."
+    if ! command -v git >/dev/null 2>&1; then
+      echo "git required for source install. Install git or wait for release binaries." >&2
+      exit 1
+    fi
+    if [ -d "$CACHE_DIR/.git" ]; then
+      git -C "$CACHE_DIR" fetch --depth 1 origin main 2>/dev/null || true
+      git -C "$CACHE_DIR" reset --hard origin/main 2>/dev/null || true
+    else
+      rm -rf "$CACHE_DIR"
+      git clone --depth 1 "https://github.com/${REPO}.git" "$CACHE_DIR"
+    fi
+    root="$CACHE_DIR"
+  fi
+
+  (cd "$root" && cargo build --profile release-fast -p lang -p langc -p langp-lsp)
+  cp "$root/target/release-fast/lang" "$INSTALL_DIR/lang"
+  cp "$root/target/release-fast/langc" "$INSTALL_DIR/langc"
+  cp "$root/target/release-fast/lang-lsp" "$INSTALL_DIR/lang-lsp"
 }
 
 download_binary() {
   name="$1"
-  TRIPLE="$2"
-  URL="https://github.com/${REPO}/releases/${VERSION}/download/${name}-${TRIPLE}"
-  TMP="$(mktemp)"
-  if curl -fsSL "$URL" -o "$TMP" 2>/dev/null; then
-    chmod +x "$TMP"
-    mv "$TMP" "$INSTALL_DIR/$name"
+  triple="$2"
+  tag="$3"
+  url="https://github.com/${REPO}/releases/download/${tag}/${name}-${triple}"
+  tmp="$(mktemp)"
+  if curl -fsSL "$url" -o "$tmp" 2>/dev/null; then
+    chmod +x "$tmp"
+    mv "$tmp" "$INSTALL_DIR/$name"
     return 0
   fi
-  rm -f "$TMP"
+  rm -f "$tmp"
   return 1
 }
 
@@ -65,10 +111,11 @@ if [ "$CARGO_INSTALL" = "1" ] || ! command -v curl >/dev/null 2>&1; then
   install_from_source
 else
   TRIPLE="$(detect_platform)"
-  echo "Downloading binaries for $TRIPLE..."
+  TAG="$(resolve_release_tag)"
+  echo "Downloading binaries for $TRIPLE (release $TAG)..."
   ok=1
   for bin in lang langc lang-lsp; do
-    if download_binary "$bin" "$TRIPLE"; then
+    if download_binary "$bin" "$TRIPLE" "$TAG"; then
       echo "  ✓ $bin"
     else
       ok=0
@@ -76,7 +123,7 @@ else
     fi
   done
   if [ "$ok" = "0" ]; then
-    echo "Pre-built binaries not found; building from source..."
+    echo "Pre-built binaries not found for $TAG; building from source..."
     install_from_source
   fi
 fi
@@ -86,11 +133,8 @@ if [ "$SKIP_EXT" != "1" ]; then
   if curl -fsSL "https://raw.githubusercontent.com/${REPO}/main/scripts/install-extension.sh" -o "$EXT_SCRIPT" 2>/dev/null; then
     sh "$EXT_SCRIPT" || true
     rm -f "$EXT_SCRIPT"
-  else
-    SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
-    if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/install-extension.sh" ]; then
-      sh "$SCRIPT_DIR/install-extension.sh" || true
-    fi
+  elif root="$(find_local_repo)" && [ -f "$root/scripts/install-extension.sh" ]; then
+    sh "$root/scripts/install-extension.sh" || true
   fi
 fi
 
@@ -106,6 +150,7 @@ if ! echo ":$PATH:" | grep -q ":$INSTALL_DIR:"; then
 fi
 echo "Run a program:"
 echo "  lang run examples/hello.lp"
-echo "  lang examples/hello.lp"
 echo ""
-echo "Reload Cursor/VS Code to activate the Lang.P extension."
+echo "Activate IDE colors:"
+echo "  Quit Cursor completely (Cmd+Q), then reopen your project."
+echo "  Or: Cmd+Shift+P → type 'reload' → pick any Reload/Restart option."
