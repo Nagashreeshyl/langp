@@ -84,10 +84,22 @@ function parseDiagnostics(text: string, doc: vscode.TextDocument): vscode.Diagno
         i += 1;
       }
       const docLine = doc.lineAt(Math.min(lineNum, doc.lineCount - 1));
-      const start = Math.min(col, docLine.text.length);
-      const end = docLine.text.length;
+      const lineText = docLine.text;
+      // Underline the token at the error column, not the whole line (PyCharm-style).
+      let start = Math.min(col, lineText.length);
+      let end = start;
+      if (start < lineText.length && /\S/.test(lineText[start])) {
+        while (end < lineText.length && /\S/.test(lineText[end]) && lineText[end] !== ".") {
+          end++;
+        }
+        if (end === start) end = Math.min(start + 1, lineText.length);
+      } else {
+        // Point error at end of line (e.g. missing `.`)
+        start = Math.max(0, lineText.trimEnd().length);
+        end = Math.min(start + 1, lineText.length);
+      }
       diags.push({
-        range: new vscode.Range(lineNum, start, lineNum, Math.max(end, start + 1)),
+        range: new vscode.Range(lineNum, start, lineNum, end),
         message,
         severity,
         source: "langp",
@@ -127,9 +139,32 @@ function runCheck(doc: vscode.TextDocument): void {
 
 function scheduleCheck(doc: vscode.TextDocument): void {
   const cfg = vscode.workspace.getConfiguration("langp");
-  if (!cfg.get<boolean>("checkOnType", true)) return;
+  if (!cfg.get<boolean>("checkOnType", false)) return;
   if (checkTimer) clearTimeout(checkTimer);
-  checkTimer = setTimeout(() => runCheck(doc), 400);
+  checkTimer = setTimeout(() => runCheck(doc), 1200);
+}
+
+/** PyCharm-style: suggest while typing words, not after a finished statement. */
+function shouldOfferCompletions(
+  doc: vscode.TextDocument,
+  position: vscode.Position
+): boolean {
+  const cfg = vscode.workspace.getConfiguration("langp");
+  if (!cfg.get<boolean>("suggestWhileTyping", true)) return false;
+
+  const line = doc.lineAt(position.line).text;
+  const before = line.slice(0, position.character);
+  const after = line.slice(position.character);
+
+  // Finished statement or block — no popup
+  if (/\.\s*$/.test(before) && after.trim() === "") return false;
+  if (/^\s*\.\.\s*$/.test(before) && after.trim() === "") return false;
+
+  // After "input " suggest types
+  if (/\binput\s+\w*$/.test(before) || /\binput\s*$/.test(before)) return true;
+
+  const prefix = wordPrefix(doc, position);
+  return prefix.length >= 1;
 }
 
 function registerIntelliSense(context: vscode.ExtensionContext): void {
@@ -140,6 +175,10 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
       selector,
       {
         provideCompletionItems(doc, position) {
+          if (!shouldOfferCompletions(doc, position)) {
+            return undefined;
+          }
+
           const prefix = wordPrefix(doc, position);
           const line = doc.lineAt(position.line).text;
           const before = line.slice(0, position.character);
@@ -196,12 +235,9 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
 
           return new vscode.CompletionList(items, false);
         },
-      },
-      ".",
-      " ",
-      "(",
-      ",",
-      "@"
+      }
+      // No trigger characters — completions appear while typing words (quickSuggestions)
+      // or on Ctrl+Space. Never pop up after typing `.` at end of a statement.
     ),
 
     vscode.languages.registerSignatureHelpProvider(
@@ -209,7 +245,12 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
       {
         provideSignatureHelp(doc, position) {
           const line = doc.lineAt(position.line).text.slice(0, position.character);
-          const fnMatch = line.match(/(\w+)\s*\(?[^()]*$/);
+          const openIdx = line.lastIndexOf("(");
+          if (openIdx === -1) return null;
+          const closeIdx = line.indexOf(")", openIdx);
+          if (closeIdx !== -1 && closeIdx >= position.character - 1) return null;
+
+          const fnMatch = line.slice(0, openIdx).match(/(\w+)\s*$/);
           if (!fnMatch) return null;
           const name = fnMatch[1];
           const entry = findEntry(name);
@@ -226,9 +267,7 @@ function registerIntelliSense(context: vscode.ExtensionContext): void {
           };
         },
       },
-      "(",
-      ",",
-      " "
+      "("
     ),
 
     vscode.languages.registerHoverProvider(selector, {
@@ -287,7 +326,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   for (const doc of vscode.workspace.textDocuments) {
     await forceLangpLanguage(doc);
-    runCheck(doc);
   }
 
   context.subscriptions.push(
@@ -296,17 +334,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     status,
     vscode.workspace.onDidOpenTextDocument(async (doc) => {
       await forceLangpLanguage(doc);
-      runCheck(doc);
     }),
-    vscode.workspace.onDidSaveTextDocument((doc) => runCheck(doc)),
+    vscode.workspace.onDidSaveTextDocument((doc) => {
+      if (!doc.fileName.endsWith(".lp")) return;
+      const cfg = vscode.workspace.getConfiguration("langp");
+      if (cfg.get<boolean>("checkOnSave", true)) {
+        runCheck(doc);
+      }
+    }),
     vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.fileName.endsWith(".lp")) scheduleCheck(e.document);
-    }),
-    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      if (editor) {
-        await forceLangpLanguage(editor.document);
-        runCheck(editor.document);
-      }
     }),
     vscode.commands.registerCommand("langp.runFile", () => {
       const editor = vscode.window.activeTextEditor;

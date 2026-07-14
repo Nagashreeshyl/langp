@@ -2,7 +2,7 @@
   "name": "langp",
   "displayName": "Lang.P Services",
   "description": "Lang.P — error underlines, autocomplete, LSP, run command",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "publisher": "Nagashreeshyl",
   "license": "MIT",
   "icon": "icons/langp.png",
@@ -48,8 +48,18 @@
         },
         "langp.checkOnType": {
           "type": "boolean",
+          "default": false,
+          "description": "Check for errors while typing (off = check on save only, like PyCharm)"
+        },
+        "langp.checkOnSave": {
+          "type": "boolean",
           "default": true,
-          "description": "Show error/warning squiggles while typing"
+          "description": "Check for errors when you save the file"
+        },
+        "langp.suggestWhileTyping": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show completions while typing words (Ctrl+Space always works)"
         }
       }
     }
