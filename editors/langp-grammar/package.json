@@ -11,7 +11,7 @@
     "url": "https://github.com/Nagashreeshyl/langp"
   },
   "engines": {
-    "vscode": "^1.60.0"
+    "vscode": "^1.85.0"
   },
   "categories": ["Programming Languages"],
   "keywords": ["langp", "lang.p", "lang", "lp"],
