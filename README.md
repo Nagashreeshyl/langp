@@ -45,12 +45,15 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 
 ## Learn
 
+**Start here:** [**The Lang.P Book**](docs/book/README.md) — official guide from absolute beginner to application developer (38 chapters).
+
 | Guide | Description |
 |-------|-------------|
-| **[Lang.P Manual](docs/manual/README.md)** | 25-chapter guide |
-| **[How to Code](docs/guides/HOW-TO-CODE.md)** | Beginner tutorial |
-| **[Language Reference](docs/guides/LANGUAGE-REFERENCE.md)** | What works in v0.2 |
-| **[STATUS.md](STATUS.md)** | Feature stability matrix |
+| **[The Lang.P Book](docs/book/README.md)** | **Primary learning resource** — install through complete projects |
+| [Lang.P Manual](docs/manual/README.md) | 25-chapter reference manual |
+| [How to Code](docs/guides/HOW-TO-CODE.md) | Short hands-on tutorial |
+| [Language Reference](docs/guides/LANGUAGE-REFERENCE.md) | Quick lookup for v0.2 |
+| [STATUS.md](STATUS.md) | Feature stability matrix |
 
 ## Run programs
 
@@ -99,6 +102,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [STYLE_GUIDE.md](STYLE_GUIDE.md).
 
 ## Documentation index
 
+- **[The Lang.P Book](docs/book/README.md)** — official tutorial (start here)
 - [Grammar Freeze v1.0](docs/spec/GRAMMAR-FREEZE-v1.md) — official syntax
 - [Specification](docs/spec/README.md)
 - [Known Limitations](KNOWN_LIMITATIONS.md)

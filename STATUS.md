@@ -84,6 +84,7 @@ This document is the public-facing feature matrix for Lang.P v0.2.0. Status labe
 
 | Asset | Status |
 |-------|--------|
+| **The Lang.P Book** | ✅ Published (`docs/book/`) |
 | README | ✅ Updated for v0.2 |
 | Manual (25 chapters) | ✅ Maintained |
 | Language Reference | ✅ Updated |

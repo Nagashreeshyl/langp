@@ -2,11 +2,20 @@
 
 Language specification, guides, and reference material for Lang.P.
 
+## Start learning
+
+**[The Lang.P Book](book/README.md)** is the **primary learning resource** for Lang.P v0.2.0 — a full tutorial from installation through complete projects, written for readers with zero prior programming experience.
+
+→ [Open The Lang.P Book](book/README.md)
+
+---
+
 ## Contents
 
 | Path | Description |
 |------|-------------|
-| **[`manual/`](manual/)** | **Lang.P Manual** — 25-chapter professional guide (Python/Rust style) |
+| **[`book/`](book/)** | **The Lang.P Book** — official 38-chapter tutorial (beginner → advanced) |
+| **[`manual/`](manual/)** | Lang.P Manual — 25-chapter professional guide |
 | [`spec/GRAMMAR-FREEZE-v1.md`](spec/GRAMMAR-FREEZE-v1.md) | **Grammar Freeze v1.0** — official syntax (single source of truth) |
 | [`spec/KEYWORDS.md`](spec/KEYWORDS.md) | Reserved keywords reference |
 | [`spec/DESIGN-DECISIONS.md`](spec/DESIGN-DECISIONS.md) | Why Lang.P syntax works this way |
