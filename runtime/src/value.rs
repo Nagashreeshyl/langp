@@ -16,8 +16,26 @@ pub enum Value {
     Dict(Rc<RefCell<HashMap<String, Value>>>),
     Set(Rc<RefCell<Vec<Value>>>),
     Tuple(Rc<Vec<Value>>),
+    /// OOP instance: `user.name`
+    Instance(Rc<InstanceData>),
+    /// Type constructor reference: `User()`
+    LangType(String),
+    /// Imported module namespace: `filesystem.exists(...)`
+    Module(Rc<ModuleData>),
     Function(Rc<UserFunction>),
     NativeFunction(NativeFn),
+}
+
+#[derive(Debug, Clone)]
+pub struct InstanceData {
+    pub type_name: String,
+    pub fields: RefCell<HashMap<String, Value>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModuleData {
+    pub name: String,
+    pub exports: RefCell<HashMap<String, Value>>,
 }
 
 impl fmt::Debug for Value {
@@ -47,6 +65,9 @@ impl Value {
             Value::Dict(d) => !d.borrow().is_empty(),
             Value::Set(s) => !s.borrow().is_empty(),
             Value::Tuple(t) => !t.is_empty(),
+            Value::Instance(_) => true,
+            Value::LangType(_) => true,
+            Value::Module(m) => !m.exports.borrow().is_empty(),
             _ => true,
         }
     }
@@ -63,6 +84,9 @@ impl Value {
             Value::Dict(_) => "Dict",
             Value::Set(_) => "Set",
             Value::Tuple(_) => "Tuple",
+            Value::Instance(_) => "Instance",
+            Value::LangType(_) => "Type",
+            Value::Module(_) => "Module",
             Value::Function(_) => "Function",
             Value::NativeFunction(_) => "Function",
         }
@@ -109,6 +133,17 @@ impl fmt::Display for Value {
                 let parts: Vec<String> = items.iter().map(|v| v.to_string()).collect();
                 write!(f, "({})", parts.join(", "))
             }
+            Value::Instance(d) => {
+                let parts: Vec<String> = d
+                    .fields
+                    .borrow()
+                    .iter()
+                    .map(|(k, v)| format!("{k}: {v}"))
+                    .collect();
+                write!(f, "{}({})", d.type_name, parts.join(", "))
+            }
+            Value::LangType(name) => write!(f, "<type {name}>"),
+            Value::Module(m) => write!(f, "<module {}>", m.name),
             Value::Function(func) => write!(f, "<function {}>", func.name),
             Value::NativeFunction(_) => write!(f, "<native function>"),
         }
@@ -128,6 +163,13 @@ impl PartialEq for Value {
             (Value::Dict(a), Value::Dict(b)) => *a.borrow() == *b.borrow(),
             (Value::Set(a), Value::Set(b)) => set_eq(a.borrow().as_slice(), b.borrow().as_slice()),
             (Value::Tuple(a), Value::Tuple(b)) => *a == *b,
+            (Value::Instance(a), Value::Instance(b)) => {
+                a.type_name == b.type_name && *a.fields.borrow() == *b.fields.borrow()
+            }
+            (Value::LangType(a), Value::LangType(b)) => a == b,
+            (Value::Module(a), Value::Module(b)) => {
+                a.name == b.name && *a.exports.borrow() == *b.exports.borrow()
+            }
             (Value::Int(a), Value::Float(b)) | (Value::Float(b), Value::Int(a)) => {
                 *a as f64 == *b
             }

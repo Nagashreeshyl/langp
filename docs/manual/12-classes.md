@@ -1,10 +1,10 @@
 # 12 — Classes (`type`)
 
-**Status: Specification — syntax defined; full OOP runtime pending**
+**Status: Beta (v0.2)**
 
 ---
 
-> This chapter documents the **official language design**. The v0.1 interpreter does not yet run `type` declarations or method dispatch. See [Language Reference v0.1](../guides/LANGUAGE-REFERENCE.md) for what works today.
+> OOP is **implemented in v0.2** with fields, methods, constructors, and single inheritance. Interfaces, properties, and visibility enforcement are planned. See [STATUS.md](../../STATUS.md).
 
 ---
 
@@ -12,30 +12,40 @@
 
 Types use `type`, open with `,`, and close with `..`:
 
-### Learning version
-
 ```lp
-@ A simple user record.
 type User,
     name.
     age.
 ..
+```
 
-@ Create an instance.
+Typed fields are also supported: `name: String.`
+
+---
+
+## Creating instances
+
+```lp
 user = User().
-print user.name.
+user.name = "Naga".
+user.age = 18.
 ```
 
-User's field syntax (no types on fields in simple form):
+Constructor with `init`:
 
 ```lp
 type User,
     name.
     age.
-..
-```
 
-The specification also allows typed fields: `name: String.`
+    function init(name, age),
+        self.name = name.
+        self.age = age.
+    ..
+..
+
+user = User("Naga", 18).
+```
 
 ---
 
@@ -56,27 +66,31 @@ c.increment().
 
 ---
 
-## Properties and constructors
-
-Constructor syntax uses the type name as a call:
+## Inheritance
 
 ```lp
-user = User().
-```
+type Animal,
+    name.
 
-Advanced features (inheritance, interfaces, `extends`) are in [Object model (spec)](../spec/10-object-model.md).
+    function speak(),
+        print "...".
+    ..
+..
+
+type Dog extends Animal,
+    breed.
+
+    function speak(),
+        print "Woof".
+    ..
+..
+```
 
 ---
 
-## Do not confuse with v0.1
+## Example
 
-Until the runtime implements OOP, use dictionaries or plain variables:
-
-```lp
-@ v0.1 pattern — use a dict instead of type.
-user = {"name": "Naga", "age": 18}.
-print user["name"].
-```
+See [examples/oop.lp](../../examples/oop.lp).
 
 ---
 
@@ -84,3 +98,4 @@ print user["name"].
 
 - [13 — Modules](13-modules.md)
 - [Object model (spec)](../spec/10-object-model.md)
+- [Known limitations](../../KNOWN_LIMITATIONS.md)

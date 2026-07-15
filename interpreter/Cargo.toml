@@ -18,7 +18,20 @@ path = "src/lib.rs"
 [dev-dependencies]
 langp-parser = { workspace = true }
 langp-semantic = { path = "../semantic" }
+tempfile = "3"
 
 [[test]]
 name = "collections"
 path = "tests/collections.rs"
+
+[[test]]
+name = "oop"
+path = "tests/oop.rs"
+
+[[test]]
+name = "modules"
+path = "tests/modules.rs"
+
+[[test]]
+name = "filesystem"
+path = "tests/filesystem.rs"

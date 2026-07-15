@@ -51,6 +51,13 @@ impl Checker {
         }
         let mut module_locals = HashSet::new();
         for item in &program.items {
+            if let ModuleItem::Use(u) = item {
+                if let Some(name) = u.path.first() {
+                    module_locals.insert(name.clone());
+                }
+            }
+        }
+        for item in &program.items {
             match item {
                 ModuleItem::Stmt(stmt) => {
                     self.check_stmt(stmt, &module_locals);
@@ -95,6 +102,11 @@ impl Checker {
                     );
                 } else {
                     self.globals.insert(e.name.clone());
+                }
+            }
+            ModuleItem::Use(u) => {
+                if let Some(name) = u.path.first() {
+                    self.globals.insert(name.clone());
                 }
             }
             _ => {}

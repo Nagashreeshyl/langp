@@ -4,4 +4,4 @@ mod error;
 mod value;
 
 pub use error::{RuntimeError, RuntimeErrorKind, RuntimeResult};
-pub use value::{set_contains, set_insert, UserFunction, Value};
+pub use value::{InstanceData, ModuleData, set_contains, set_insert, NativeFn, UserFunction, Value};

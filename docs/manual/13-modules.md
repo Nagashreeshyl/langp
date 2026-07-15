@@ -1,59 +1,70 @@
 # 13 — Modules
 
-**Status: Specification — `use` imports not yet in v0.1 interpreter**
+**Status: Beta (v0.2)**
 
 ---
 
-> Module imports are defined in the language specification. The v0.1 toolchain runs single-file programs. Multi-file `use` is **planned**.
+> `use` imports load built-in stdlib modules today. Project multi-file evaluation is partial. See [STATUS.md](../../STATUS.md) and [KNOWN_LIMITATIONS.md](../../KNOWN_LIMITATIONS.md).
 
 ---
 
-## Import syntax (official)
+## Import syntax
 
 ```lp
+use filesystem.
+use math.
 use navigator.
 use ai.
-use database.
-use network.
-use filesystem.
 ```
 
-Submodules use dot paths:
+Access exports with dot notation:
 
 ```lp
-use json.
-use http.server.
+print filesystem.exists("notes.txt").
+print math.abs(-5).
 ```
 
 ---
 
-## Intended project layout (specification)
+## Standard library modules (v0.2)
+
+| Module | Status | Notes |
+|--------|--------|-------|
+| `filesystem` | ✅ Stable | Full file API |
+| `math` | 🟡 Beta | `abs`, `min`, `max` |
+| `json` | 🟡 Beta | Stub parse/stringify |
+| `navigator` | 📋 Stub | Version string only |
+| `ai` | 📋 Stub | Version string only |
+| `network` | 📋 Stub | Version string only |
+| `database` | 📋 Stub | Version string only |
+
+Top-level `read` / `write` statements work without import.
+
+---
+
+## Project layout
 
 ```
 myapp/
-    lang.toml          @ project manifest (planned)
-    main.lp            @ entry point
-    utils/
-        helpers.lp
+    langp.toml       @ manifest
+    langp.lock       @ pinned dependencies
+    main.lp          @ entry point
+    src/             @ project modules (partial support)
+    tests/           @ test programs
+```
+
+Initialize with:
+
+```bash
+lang init myapp
+lang install filesystem
 ```
 
 ---
 
-## Exports
+## Example
 
-The specification defines visibility rules in [Modules (spec)](../spec/11-modules-imports.md). Public symbols are exported by default at module top level unless marked private in future releases.
-
----
-
-## v0.1 workaround
-
-Put all code in one `.lp` file or concatenate manually. Example layout:
-
-```
-myproject/
-    main.lp
-    @ helpers.lp — copy/paste or wait for use support
-```
+See [examples/modules.lp](../../examples/modules.lp).
 
 ---
 
@@ -61,3 +72,4 @@ myproject/
 
 - [14 — Error Handling](14-error-handling.md)
 - [Modules (spec)](../spec/11-modules-imports.md)
+- [Package system (spec)](../spec/20-package-system.md)

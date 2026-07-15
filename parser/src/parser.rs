@@ -122,10 +122,17 @@ impl Parser {
     fn parse_type_decl(&mut self) -> ParseResult<TypeDecl> {
         let start = self.bump_keyword(Keyword::Type)?;
         let name = self.expect_ident_raw()?;
+        let extends = if self.check_ident("extends") {
+            self.bump();
+            Some(self.expect_ident_raw()?)
+        } else {
+            None
+        };
         self.expect(&TokenKind::Comma)?;
         let members = self.parse_type_members()?;
         Ok(TypeDecl {
             name,
+            extends,
             members,
             span: span_between(start, self.previous_span()),
         })

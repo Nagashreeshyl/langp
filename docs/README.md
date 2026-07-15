@@ -13,7 +13,12 @@ Language specification, guides, and reference material for Lang.P.
 | [`spec/LANGUAGE-PHILOSOPHY.md`](spec/LANGUAGE-PHILOSOPHY.md) | Language design principles |
 | [`manual/README.md`](manual/README.md) | Manual index with implementation status badges |
 | [`guides/HOW-TO-CODE.md`](guides/HOW-TO-CODE.md) | Hands-on beginner tutorial |
-| [`guides/LANGUAGE-REFERENCE.md`](guides/LANGUAGE-REFERENCE.md) | **All commands & functions implemented in v0.1** |
+| [`guides/LANGUAGE-REFERENCE.md`](guides/LANGUAGE-REFERENCE.md) | **All commands & functions implemented in v0.2** |
+| [`../STATUS.md`](../STATUS.md) | Public feature stability matrix |
+| [`../CHANGELOG.md`](../CHANGELOG.md) | Release history |
+| [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | How to contribute |
+| [`TECH-STACK.md`](TECH-STACK.md) | **Full tech stack** — architecture, crates, IDE, CI, and roadmap |
+| [`ARCHITECTURE-v0.2.md`](ARCHITECTURE-v0.2.md) | **v0.2 architecture** — OOP, modules, package manager |
 | [`spec/`](spec/) | Authoritative language specification (22 chapters) |
 | [`spec/LANGP-SPEC.md`](spec/LANGP-SPEC.md) | Single-document specification for offline reading |
 | [`spec/glossary.md`](spec/glossary.md) | Term definitions |
@@ -24,8 +29,8 @@ Language specification, guides, and reference material for Lang.P.
 
 The language specification is the foundation of the Lang.P project. All compiler, runtime, stdlib, and tooling implementations MUST conform to it.
 
-- **Version:** 0.1.0
-- **Status:** Phase 1 complete
+- **Version:** 0.2.0
+- **Status:** Phase 1 complete; v0.2 runtime features in beta
 - **Grammar:** Phase 2 complete — [`grammar/README.md`](grammar/README.md)
 - **Index:** [`spec/README.md`](spec/README.md)
 

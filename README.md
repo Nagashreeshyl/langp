@@ -1,18 +1,21 @@
 # Lang.P
 
-**Lang.P** (spoken name: **Lang**) is a production-oriented programming language designed to be the world's most readable programming language — powerful enough for desktop apps, browsers, AI agents, APIs, games, and systems software, yet approachable enough that a beginner can understand most code after seeing it once.
+**Version 0.2.0** · [Status](STATUS.md) · [Changelog](CHANGELOG.md) · [Roadmap](ROADMAP.md)
+
+**Lang.P** (spoken name: **Lang**) is a readable programming language — approachable for beginners, structured for production. v0.2 adds collections, objects, modules, filesystem stdlib, and a package manager foundation.
 
 | Component       | Name        |
 |-----------------|-------------|
 | File extension  | `.lp`       |
-| Compiler        | `langc`     |
-| Package manager | `lang`      |
-| IDE             | Lang Studio |
-| Language Server | Lang LSP    |
+| Runner          | `lang`      |
+| Compiler CLI    | `langc`     |
+| Package manager | `lang` (built-in) |
+| Language Server | `lang-lsp`  |
+| IDE             | VS Code / Cursor extension |
 
 ## Install (one line)
 
-Installs `lang`, `langc`, `lang-lsp`, and the Cursor/VS Code extension automatically:
+Installs `lang`, `langc`, `lang-lsp`, and the Cursor/VS Code extension:
 
 ```bash
 # macOS / Linux
@@ -22,69 +25,44 @@ curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/in
 irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/install.ps1 | iex
 ```
 
-Then **reload Cursor/VS Code** and run:
+Reload your IDE, then:
 
 ```bash
 lang run examples/hello.lp
-lang examples/hello.lp          # shorthand
+lang init my-project
+lang install filesystem
 ```
 
-## Uninstall (one line)
+## What's new in v0.2
 
-```bash
-# macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall.sh | sh
+- **Collections** — List, Dict, Set, Tuple with methods and generics
+- **Objects (beta)** — `type`, methods, `init`, `extends`
+- **Modules (beta)** — `use filesystem.`, stdlib modules
+- **Package manager (beta)** — `langp.toml`, `lang install`, lock file
+- **Release docs** — STATUS, limitations, roadmap, contributing guide
 
-# Windows (PowerShell)
-irm https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/uninstall.ps1 | iex
-```
+See [CHANGELOG.md](CHANGELOG.md) for full details.
 
-## Learn to code
+## Learn
 
 | Guide | Description |
 |-------|-------------|
-| **[Lang.P Manual](docs/manual/README.md)** | Full 25-chapter language manual — introduction through error messages |
-| **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** | Hands-on beginner tutorial — loops, functions, conditionals |
-| **[Language Reference (v0.1)](docs/guides/LANGUAGE-REFERENCE.md)** | All commands & functions that work **right now** |
-
-## IDE support (Cursor, Antigravity, VS Code, Windsurf)
-
-The install script sets up everything automatically — **no `cursor` CLI** (it segfaults on some Macs):
-
-- `.lp` treated as **Lang.P** (not Plain Text)
-- File icon in the explorer
-- Syntax highlighting (colors) and snippets
-- **Auto-indent** after `,` and **de-indent** on `..`
-- Built-in autocomplete (keywords + snippets)
-- Error/warning squiggles via `lang check`
-- Full LSP autocomplete when `lang-lsp` is installed
-
-If colors or autocomplete still don't work after install:
-
-```bash
-./scripts/fix-ide.sh    # from a cloned repo — installs to all IDEs
-```
-
-**Autocomplete:** Lang.P uses standard IntelliSense (like PyCharm/Python) — a popup list with function signatures. The large AI code blocks in Antigravity are *not* Lang.P suggestions. For `.lp` files we disable AI inline suggestions; use **Ctrl+Space** for Lang.P completions. In Antigravity you can also turn off **Suggestions in Editor** (bottom-right → Antigravity Settings).
-
-Then **fully quit** your IDE (Cmd+Q) and reopen a `.lp` file in the **editor tab** (not the AI chat panel). Bottom-right should say **Lang.P**.
-
-If you cloned the repo locally instead:
-
-```bash
-./scripts/install.sh
-```
+| **[Lang.P Manual](docs/manual/README.md)** | 25-chapter guide |
+| **[How to Code](docs/guides/HOW-TO-CODE.md)** | Beginner tutorial |
+| **[Language Reference](docs/guides/LANGUAGE-REFERENCE.md)** | What works in v0.2 |
+| **[STATUS.md](STATUS.md)** | Feature stability matrix |
 
 ## Run programs
 
 ```bash
-lang run examples/hello.lp       # run (recommended)
-lang examples/hello.lp           # same thing
-lang check examples/hello.lp     # check for errors
-langc --emit ast examples/hello.lp   # compiler/debug tools
+lang run examples/hello.lp
+lang check examples/hello.lp
+lang init                          # new project
+lang build                         # check project entry
+langc --emit ast examples/hello.lp # debug AST
 ```
 
-## Quick Example
+## Quick example
 
 ```lp
 @ Greet the user by name.
@@ -95,64 +73,37 @@ function greet(name),
 greet("World").
 ```
 
-Output: `Hello World!`
-
-## Project Structure
+## Project structure
 
 ```
 /langp
-    /lexer         — Tokenization
-    /parser        — Syntax analysis
-    /ast           — Abstract syntax tree definitions
-    /semantic      — Semantic analyzer
-    /runtime       — Runtime values and errors
-    /interpreter   — Tree-walking interpreter
-    /langc         — Compiler CLI
-    /lang-lsp      — Language Server (IDE autocomplete, diagnostics)
-    /editors       — VS Code / Cursor extension
-    /scripts       — install.sh, install.ps1, build-fast.sh
-    /examples      — Example programs
-    /tests         — Integration & conformance tests
-    /docs          — Language specification & guides
+    /lexer /parser /ast /semantic   Compiler front-end
+    /runtime /interpreter            Execution
+    /langc /lang /langpm /lang-lsp   Tooling
+    /editors                         VS Code extension
+    /examples                        Runnable programs
+    /tests                           Conformance tests
+    /docs                            Spec, manual, guides
 ```
 
-## Development Roadmap
+See [TECH-STACK.md](docs/TECH-STACK.md) and [ARCHITECTURE-v0.2.md](docs/ARCHITECTURE-v0.2.md).
 
-| Phase | Deliverable                    | Status      |
-|-------|--------------------------------|-------------|
-| 1     | Complete language specification | **Complete** |
-| 2     | Formal grammar (EBNF)          | **Complete** |
-| 3     | Lexer                          | **Complete** |
-| 4     | Parser + AST                   | **Complete** |
-| 5     | AST generation (serde JSON)    | **Complete** |
-| 6     | Semantic analyzer              | **Complete** |
-| 7     | Interpreter                    | **Complete** |
-| 8     | Build bundles (`langc build`)  | **Complete** |
-| 9     | Runtime (values, builtins)     | **Complete** |
-| 10    | Package manager                | Pending     |
-| 11    | Navigator framework            | Pending     |
-| 12    | AI framework                   | Pending     |
-| 13    | Language Server                | **Complete** |
-| 14    | Lang Studio IDE                | Partial (VS Code/Cursor extension) |
+## Development
 
-## Faster compilation
+```bash
+./scripts/build-fast.sh
+cargo test
+```
 
-Debug builds use optimized dependencies (`opt-level = 1/2`). For daily use:
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [STYLE_GUIDE.md](STYLE_GUIDE.md).
 
-| Command | When to use |
-|---------|-------------|
-| `./scripts/build-fast.sh` | Fast optimized `langc` (~10s first time, instant after) |
-| `cargo test` | Run all tests (first compile slower, then incremental) |
-| `cargo build --release -p langc` | Smallest/fastest native binary for distribution |
+## Documentation index
 
-## Documentation
-
-- **[How to Code in Lang.P](docs/guides/HOW-TO-CODE.md)** — beginner guide (start here)
-- **[Language Reference v0.1](docs/guides/LANGUAGE-REFERENCE.md)** — all implemented commands, keywords, and builtins
-- [Language Specification Index](docs/spec/README.md)
-- [Full Specification (single document)](docs/spec/LANGP-SPEC.md)
-- [Formal Grammar (EBNF)](docs/grammar/README.md)
+- [Grammar Freeze v1.0](docs/spec/GRAMMAR-FREEZE-v1.md) — official syntax
+- [Specification](docs/spec/README.md)
+- [Known Limitations](KNOWN_LIMITATIONS.md)
+- [Security](SECURITY.md)
 
 ## License
 
-TBD.
+[MIT](LICENSE)

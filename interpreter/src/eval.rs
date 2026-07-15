@@ -1,12 +1,18 @@
 use crate::builtins::register_builtins;
 use crate::collections;
 use crate::env::Environment;
+use crate::modules::ModuleLoader;
+use crate::objects;
+use crate::oop::{self, TypeRegistry};
 use langp_ast::*;
 use langp_lexer::{InputTypeKeyword, Span};
-use langp_runtime::{set_insert, RuntimeError, RuntimeErrorKind, RuntimeResult, UserFunction, Value};
+use langp_runtime::{
+    set_insert, InstanceData, RuntimeError, RuntimeErrorKind, RuntimeResult, UserFunction, Value,
+};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io::{self, Write};
+use std::path::PathBuf;
 use std::rc::Rc;
 
 pub struct RunResult {
@@ -23,6 +29,9 @@ enum Flow {
 pub struct Interpreter {
     globals: Rc<Environment>,
     functions: HashMap<String, Rc<FunctionDecl>>,
+    types: TypeRegistry,
+    modules: ModuleLoader,
+    current_self: Option<Value>,
 }
 
 impl Interpreter {
@@ -32,10 +41,35 @@ impl Interpreter {
         Self {
             globals,
             functions: HashMap::new(),
+            types: TypeRegistry::new(),
+            modules: ModuleLoader::new(None),
+            current_self: None,
         }
     }
 
+    pub fn with_project_root(root: PathBuf) -> Self {
+        let mut i = Self::new();
+        i.modules = ModuleLoader::new(Some(root));
+        i
+    }
+
     pub fn run_program(&mut self, program: &Program) -> RuntimeResult<RunResult> {
+        self.types.register_from_program(&program.items)?;
+
+        for item in &program.items {
+            if let ModuleItem::Use(u) = item {
+                let module = self.modules.load(&u.path)?;
+                if let Some(name) = u.path.first() {
+                    self.globals.define(name.clone(), module);
+                }
+            }
+        }
+
+        for name in self.types.names().cloned().collect::<Vec<_>>() {
+            self.globals
+                .define(name.clone(), Value::LangType(name));
+        }
+
         for item in &program.items {
             if let ModuleItem::Function(f) = item {
                 self.functions.insert(f.name.clone(), Rc::new(f.clone()));
@@ -56,7 +90,6 @@ impl Interpreter {
                     self.exec_stmt(stmt, self.globals.clone())?;
                 }
                 ModuleItem::Function(f) => {
-                    // Top-level function bodies are registered, not executed.
                     let _ = f;
                 }
                 _ => {}
@@ -112,17 +145,45 @@ impl Interpreter {
             Stmt::For(f) => self.eval_for(f, env),
             Stmt::While(w) => self.eval_while(w, env),
             Stmt::Try(t) => self.eval_try(t, env),
-            Stmt::Write { value, destination, span, .. } => {
+            Stmt::Write {
+                kind,
+                value,
+                destination,
+                span,
+            } => {
                 let val = self.eval_expr(value, env.clone())?;
                 let dest = self.eval_expr(destination, env.clone())?;
                 let path = value_to_string(&dest, *span)?;
-                std::fs::write(&path, val.to_string()).map_err(|e| {
-                    RuntimeError::new(
-                        RuntimeErrorKind::IoError,
-                        *span,
-                        format!("write failed: {e}"),
-                    )
-                })?;
+                match kind {
+                    WriteKind::Write => {
+                        std::fs::write(&path, val.to_string()).map_err(|e| {
+                            RuntimeError::new(
+                                RuntimeErrorKind::IoError,
+                                *span,
+                                format!("write failed: {e}"),
+                            )
+                        })?;
+                    }
+                    WriteKind::WriteBytes => {
+                        std::fs::write(&path, val.to_string().into_bytes()).map_err(|e| {
+                            RuntimeError::new(
+                                RuntimeErrorKind::IoError,
+                                *span,
+                                format!("write_bytes failed: {e}"),
+                            )
+                        })?;
+                    }
+                    WriteKind::Append => {
+                        use std::io::Write as _;
+                        let mut file = std::fs::OpenOptions::new()
+                            .create(true)
+                            .append(true)
+                            .open(&path)
+                            .map_err(|e| io_err(*span, e))?;
+                        file.write_all(val.to_string().as_bytes())
+                            .map_err(|e| io_err(*span, e))?;
+                    }
+                }
                 Ok(Flow::None)
             }
             Stmt::Io(io) => {
@@ -340,18 +401,7 @@ impl Interpreter {
             }
             AssignTarget::Member { object, name, .. } => {
                 let obj = self.eval_expr(object, env.clone())?;
-                match obj {
-                    Value::Dict(d) => {
-                        d.borrow_mut().insert(name.clone(), new_val);
-                    }
-                    _ => {
-                        return Err(RuntimeError::new(
-                            RuntimeErrorKind::TypeError,
-                            span,
-                            "member assignment requires Dict",
-                        ));
-                    }
-                }
+                objects::member_set(&obj, name, new_val, span)?;
             }
             AssignTarget::Index { object, index, .. } => {
                 let obj = self.eval_expr(object, env.clone())?;
@@ -404,7 +454,7 @@ impl Interpreter {
             }),
             AssignTarget::Member { object, name, .. } => {
                 let obj = self.eval_expr(object, env)?;
-                collections::member_get(&obj, name, span)
+                objects::member_get(&obj, name, span, &self.types)
             }
             AssignTarget::Index { object, index, .. } => {
                 let obj = self.eval_expr(object, env.clone())?;
@@ -434,11 +484,19 @@ impl Interpreter {
                     format!("undefined variable '{name}'"),
                 )
             }),
-            Expr::SelfExpr { .. } => Err(RuntimeError::new(
-                RuntimeErrorKind::NotImplemented,
-                expr.span(),
-                "self not yet supported in interpreter",
-            )),
+            Expr::SelfExpr { .. } => {
+                if let Some(self_val) = &self.current_self {
+                    Ok(self_val.clone())
+                } else if let Some(self_val) = env.get("self") {
+                    Ok(self_val)
+                } else {
+                    Err(RuntimeError::new(
+                        RuntimeErrorKind::InvalidOperation,
+                        expr.span(),
+                        "self used outside of method",
+                    ))
+                }
+            }
             Expr::Binary { op, left, right, span } => {
                 let l = self.eval_expr(left, env.clone())?;
                 let r = self.eval_expr(right, env)?;
@@ -455,7 +513,19 @@ impl Interpreter {
                     for a in args {
                         arg_vals.push(self.eval_expr(&a.value, env.clone())?);
                     }
-                    return collections::dispatch_method(&obj, name, &arg_vals, *span);
+                    if let Value::Instance(inst) = &obj {
+                        let def = self.types.get(&inst.type_name).ok_or_else(|| {
+                            RuntimeError::new(
+                                RuntimeErrorKind::TypeError,
+                                *span,
+                                format!("unknown type '{}'", inst.type_name),
+                            )
+                        })?;
+                        if let Some(method) = self.types.find_method(&def, name) {
+                            return self.call_instance_method(obj, method, arg_vals, *span, env);
+                        }
+                    }
+                    return objects::dispatch_method(&obj, name, &arg_vals, *span, &self.types);
                 }
                 let func = self.eval_expr(callee, env.clone())?;
                 let mut arg_vals = Vec::new();
@@ -466,7 +536,7 @@ impl Interpreter {
             }
             Expr::Member { object, name, span } => {
                 let obj = self.eval_expr(object, env)?;
-                collections::member_get(&obj, name, *span)
+                objects::member_get(&obj, name, *span, &self.types)
             }
             Expr::Index { object, index, span } => {
                 let obj = self.eval_expr(object, env.clone())?;
@@ -517,34 +587,84 @@ impl Interpreter {
                 }
                 Ok(Value::Tuple(Rc::new(vals)))
             }
-            Expr::Object { args, fields, .. } => {
-                let mut map = HashMap::new();
+            Expr::Object { ty, args, fields, span } => {
+                let type_name = oop::type_name_from_expr(ty).ok_or_else(|| {
+                    RuntimeError::new(
+                        RuntimeErrorKind::TypeError,
+                        *span,
+                        "object creation requires a named type",
+                    )
+                })?;
+                let def = self.types.get(&type_name).ok_or_else(|| {
+                    RuntimeError::new(
+                        RuntimeErrorKind::TypeError,
+                        *span,
+                        format!("unknown type '{type_name}'"),
+                    )
+                })?;
+                let mut field_values = HashMap::new();
+                for fname in self.types.instance_field_names(&def) {
+                    if let Some(f) = def.fields.iter().find(|f| f.name == fname) {
+                        if let Some(default_expr) = &f.default {
+                            field_values.insert(
+                                fname.clone(),
+                                self.eval_expr(default_expr, env.clone())?,
+                            );
+                        } else {
+                            field_values.insert(fname, Value::Null);
+                        }
+                    }
+                }
+                let instance_fields: Vec<_> = def.fields.iter().filter(|f| !f.is_static).collect();
+                let mut positional = 0usize;
                 for a in args {
                     if let Some(name) = &a.name {
-                        map.insert(
+                        field_values.insert(
                             name.clone(),
                             self.eval_expr(&a.value, env.clone())?,
                         );
+                    } else if positional < instance_fields.len() {
+                        field_values.insert(
+                            instance_fields[positional].name.clone(),
+                            self.eval_expr(&a.value, env.clone())?,
+                        );
+                        positional += 1;
                     }
                 }
-                if let Some(f) = fields {
-                    for stmt in &f.statements {
+                if let Some(block) = fields {
+                    for stmt in &block.statements {
                         if let Stmt::Assign {
-                            target: AssignTarget::Name {
-                                name,
-                                ty: None,
-                                span: _,
-                            },
+                            target: AssignTarget::Name { name, .. },
                             op: AssignOp::Assign,
                             value,
                             ..
                         } = stmt
                         {
-                            map.insert(name.clone(), self.eval_expr(value, env.clone())?);
+                            field_values.insert(
+                                name.clone(),
+                                self.eval_expr(value, env.clone())?,
+                            );
                         }
                     }
                 }
-                Ok(Value::Dict(Rc::new(RefCell::new(map))))
+                let instance = Value::Instance(Rc::new(InstanceData {
+                    type_name: type_name.clone(),
+                    fields: RefCell::new(field_values),
+                }));
+                if let Some(init) = self.types.find_method(&def, "init") {
+                    let init_args: Vec<Value> = args
+                        .iter()
+                        .map(|a| self.eval_expr(&a.value, env.clone()))
+                        .collect::<RuntimeResult<_>>()?;
+                    self.call_instance_method(
+                        instance.clone(),
+                        init,
+                        init_args,
+                        *span,
+                        env.clone(),
+                    )?;
+                }
+                Ok(instance)
             }
             Expr::Lambda { .. } => Err(RuntimeError::new(
                 RuntimeErrorKind::NotImplemented,
@@ -657,6 +777,44 @@ impl Interpreter {
                 Ok(Value::List(Rc::new(RefCell::new(lines))))
             }
         }
+    }
+
+    fn call_instance_method(
+        &mut self,
+        receiver: Value,
+        func: Rc<FunctionDecl>,
+        arg_vals: Vec<Value>,
+        span: Span,
+        caller_env: Rc<Environment>,
+    ) -> RuntimeResult<Value> {
+        let prev_self = self.current_self.clone();
+        self.current_self = Some(receiver.clone());
+        let call_env = Rc::new(Environment::child(caller_env));
+        call_env.define("self", receiver);
+        for (param, arg) in func.params.iter().zip(arg_vals.iter()) {
+            call_env.define(param.name.clone(), arg.clone());
+        }
+        for param in func.params.iter().skip(arg_vals.len()) {
+            if let Some(default) = &param.default {
+                call_env.define(
+                    param.name.clone(),
+                    self.eval_expr(default, call_env.clone())?,
+                );
+            } else {
+                call_env.define(param.name.clone(), Value::Null);
+            }
+        }
+        let result = match self.eval_block_flow(&func.body, call_env)? {
+            Flow::Return(vals, _) => Ok(vals.into_iter().next().unwrap_or(Value::Null)),
+            Flow::None => Ok(Value::Null),
+            Flow::Break(s) | Flow::Continue(s) => Err(RuntimeError::new(
+                RuntimeErrorKind::InvalidOperation,
+                s,
+                "break/continue outside loop",
+            )),
+        };
+        self.current_self = prev_self;
+        result
     }
 
     fn call(

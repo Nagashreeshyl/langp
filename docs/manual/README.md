@@ -10,13 +10,14 @@ This manual is organized like [The Python Tutorial](https://docs.python.org/3/tu
 
 | Badge | Meaning |
 |-------|---------|
-| **Implemented (v0.1)** | Works in the current interpreter — run with `lang run file.lp` |
-| **Specification** | Defined in the language spec; parser may accept some syntax, but runtime support is incomplete or pending |
-| **Planned** | Design documented; not yet available in tooling |
+| **Implemented (v0.2)** | Works in the current interpreter — run with `lang run file.lp` |
+| **Beta (v0.2)** | Partial runtime; usable with documented limits |
+| **Specification** | Defined in spec; parser may accept syntax; runtime incomplete |
+| **Planned** | Design documented; not yet available |
 
 **Start here if you are new:** [01 — Introduction](01-introduction.md) → [02 — Language Philosophy](02-philosophy.md) → [How to Code in Lang.P](../guides/HOW-TO-CODE.md)
 
-**Quick lookup for working features:** [Language Reference v0.1](../guides/LANGUAGE-REFERENCE.md)
+**Quick lookup for working features:** [Language Reference v0.2](../guides/LANGUAGE-REFERENCE.md)
 
 **Normative specification:** [Specification Index](../spec/README.md)
 
@@ -37,8 +38,8 @@ This manual is organized like [The Python Tutorial](https://docs.python.org/3/tu
 | 09 | [Conditions](09-conditions.md) | Implemented |
 | 10 | [Input](10-input.md) | Partial |
 | 11 | [Output](11-output.md) | Implemented |
-| 12 | [Classes (`type`)](12-classes.md) | Specification |
-| 13 | [Modules](13-modules.md) | Specification |
+| 12 | [Classes (`type`)](12-classes.md) | Beta |
+| 13 | [Modules](13-modules.md) | Beta |
 | 14 | [Error Handling](14-error-handling.md) | Implemented |
 | 15 | [Async Programming](15-async.md) | Specification |
 | 16 | [File System](16-filesystem.md) | Implemented |

@@ -51,6 +51,7 @@ pub struct Param {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TypeDecl {
     pub name: String,
+    pub extends: Option<String>,
     pub members: Vec<TypeMember>,
     pub span: Span,
 }

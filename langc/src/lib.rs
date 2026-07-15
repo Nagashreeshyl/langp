@@ -38,9 +38,37 @@ pub fn run(args: &[String], flavor: CliFlavor) -> Result<(), String> {
         return Ok(());
     }
 
-    if args.iter().any(|a| a == "install" || a == "--install") {
-        return install_self();
+    if flavor == CliFlavor::Lang {
+        if let Some(cmd) = args.first().map(|s| s.as_str()) {
+            return match cmd {
+                "init" => langpm::cmd_init(args.get(1).map(|s| s.as_str())),
+                "install" => langpm::cmd_install(args.get(1).map(|s| s.as_str())),
+                "remove" => langpm::cmd_remove(
+                    args.get(1)
+                        .map(|s| s.as_str())
+                        .ok_or("usage: lang remove <package>")?,
+                ),
+                "update" => langpm::cmd_update(args.get(1).map(|s| s.as_str())),
+                "search" => langpm::cmd_search(
+                    args.get(1)
+                        .map(|s| s.as_str())
+                        .ok_or("usage: lang search <query>")?,
+                ),
+                "publish" => langpm::cmd_publish(),
+                "login" => langpm::cmd_login(),
+                "doctor" => langpm::cmd_doctor(),
+                "fmt" => langpm::cmd_fmt(),
+                "test" => langpm::cmd_test(),
+                "build" if !args.iter().any(|a| a.ends_with(".lp")) => langpm::cmd_build(),
+                _ => run_file(args, flavor),
+            };
+        }
     }
+
+    run_file(args, flavor)
+}
+
+fn run_file(args: &[String], flavor: CliFlavor) -> Result<(), String> {
 
     let mode = parse_mode(args, flavor);
     let emit_tokens = has_flag(args, "--emit", "tokens");
@@ -325,15 +353,21 @@ USAGE:
     lang run <file.lp>          Run a program
     lang <file.lp>              Same as lang run
     lang check <file.lp>        Check for errors
+    lang init [name]            Create langp.toml project
+    lang install [package]      Install dependencies
+    lang remove <package>       Remove dependency
+    lang update                 Update lock file
+    lang search <query>         Search packages
+    lang build                  Build project (lang check entry)
+    lang test                   Check tests/*.lp
+    lang fmt                    Format/check entry file
+    lang doctor                 Verify toolchain
     lang --version              Show version
 
 EXAMPLES:
     lang run examples/hello.lp
-    lang examples/hello.lp
-    lang check examples/hello.lp
-
-INSTALL:
-    curl -fsSL https://raw.githubusercontent.com/Nagashreeshyl/langp/main/scripts/install.sh | sh
+    lang init my-app
+    lang install filesystem
 "#
             );
         }

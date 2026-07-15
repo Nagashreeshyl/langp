@@ -1,9 +1,9 @@
-# Lang.P Language Reference (v0.1 — implemented)
+# Lang.P Language Reference (v0.2 — implemented)
 
 This document lists **every command, keyword, and function that works today** in Lang.P.  
 It matches the interpreter and IDE autocomplete (`editors/langp-manifest.json`).
 
-For planned (not yet built) features, see the [full specification](../spec/LANGP-SPEC.md).
+For stability labels see [STATUS.md](../../STATUS.md). For planned features, see the [full specification](../spec/LANGP-SPEC.md).
 
 ---
 

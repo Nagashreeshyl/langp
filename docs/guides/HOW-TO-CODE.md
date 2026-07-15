@@ -2,7 +2,7 @@
 
 A complete beginner's guide to writing Lang.P programs (`.lp` files).
 
-For the full 25-chapter manual (operators, types, filesystem, best practices, error messages), see **[Lang.P Manual](../manual/README.md)**. For a quick list of working commands, see **[Language Reference v0.1](LANGUAGE-REFERENCE.md)**.
+For the full 25-chapter manual (operators, types, filesystem, best practices, error messages), see **[Lang.P Manual](../manual/README.md)**. For a quick list of working commands, see **[Language Reference v0.2](LANGUAGE-REFERENCE.md)**.
 
 ---
 
@@ -298,7 +298,7 @@ finally,
 | `lang --version` | Show version |
 | `langc --emit ast file.lp` | Debug: show syntax tree |
 
-**All built-in keywords and functions:** [Language Reference (v0.1)](LANGUAGE-REFERENCE.md) — print, input, len, if, repeat, file I/O, and more.
+**All built-in keywords and functions:** [Language Reference (v0.2)](LANGUAGE-REFERENCE.md) — print, input, len, if, repeat, file I/O, collections, modules, and more.
 
 ---
 
@@ -360,7 +360,7 @@ If colors don't appear: bottom-right language mode → select **Lang.P**, then r
 
 ## Next steps
 
-- **[Language Reference (v0.1)](LANGUAGE-REFERENCE.md)** — all commands & functions that work now
+- **[Language Reference (v0.2)](LANGUAGE-REFERENCE.md)** — all commands & functions that work now
 - Read the [full language specification](../spec/LANGP-SPEC.md)
 - Browse [examples/](../../examples/)
 - Run `lang check` on your code before `lang run`

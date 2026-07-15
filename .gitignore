@@ -23,7 +23,8 @@
 /.vscode/*
 !/.vscode/settings.json
 !/.vscode/extensions.json
-!/.vscode/extensions/
+/IDE/
+/Support/
 *.swp
 *.swo
 *~

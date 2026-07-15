@@ -20,3 +20,4 @@ langp-ast = { workspace = true }
 langp-parser = { workspace = true }
 langp-semantic = { workspace = true }
 langp-interpreter = { workspace = true }
+langpm = { path = "../langpm" }

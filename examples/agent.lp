@@ -1,27 +1,9 @@
-@ agent.lp — Minimal AI agent example.
+@ agent.lp — AI module stub (v0.2 beta)
+@
+@ The full AI framework (Assistant, Groq, on user.message) is planned for v0.4.
+@ This example verifies that `use ai.` loads the built-in module stub today.
 
-@ Import the AI framework for LLM integration.
 use ai.
 
-@ Create an AI assistant connected to Groq.
-assistant = Assistant(),
-    provider = Groq.
-    api_key = env.GROQ_API_KEY.
-    model = llama-3.3-70b.
-    system_prompt = "You are a helpful assistant for the Lang.P programming language.".
-..
-
-@ Respond when the user sends a message.
-on user.message,
-    reply = assistant.chat(user.message).
-    print reply.
-..
-
-@ Handle errors from the AI provider gracefully.
-on assistant.error,
-    print "AI Error: " with assistant.error.message.
-..
-
-@ Send an initial greeting to demonstrate the assistant.
-reply = assistant.chat("What is Lang.P?").
-print reply.
+print "AI module version: " with ai.version.
+print "Lang.P AI framework — coming in a future release.".
